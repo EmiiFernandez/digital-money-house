@@ -1,0 +1,115 @@
+services:
+  #eureka-server:
+  #    container_name: eureka-server
+  #    build:
+  #      context: .
+  #      dockerfile: ./eureka-server/Dockerfile
+  #    ports:
+  #      - "8761:8761"
+  #    networks:
+ #      - back_network
+
+ # config-server:
+ #  container_name: config-server
+  #  build:
+ #     context: .
+ #     dockerfile: ./config-server/Dockerfile
+ #   ports:
+ #     - "8888:8888"
+  #  environment:
+   #   - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+  #  depends_on:
+  #    - eureka-server
+ #   networks:
+   #   - back_network
+
+ # gateway:
+ #   container_name: gateway
+ #   build:
+ #     context: .
+ #     dockerfile: ./gateway/Dockerfile
+  #  ports:
+  #    - "9091:8085"
+  #  environment:
+  #    - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+  #  depends_on:
+  #    - eureka-server
+ #     - config-server
+ #   networks:
+ #     - back_network
+
+  mysql_user_service:
+    container_name: mysql_user_service
+    image: mysql:latest
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_user_data:/var/lib/mysql
+  #  networks:
+  #    - back_network
+
+ # mysql_keycloak:
+  #  container_name: mysql_keycloak
+ #   image: mysql:latest
+  #  restart: unless-stopped
+ #   environment:
+  #    MYSQL_ROOT_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+  #    MYSQL_DATABASE: ${KEYCLOAK_DB_NAME}
+  #    MYSQL_USER: ${KEYCLOAK_DB_USER}
+  #    MYSQL_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+ #   ports:
+  #    - "3308:3306"
+  #  volumes:
+  #    - mysql_keycloak_data:/var/lib/mysql
+  #  healthcheck:
+  #    test: ["CMD", "ping", "-h", "localhost"]
+  #    interval: 30s
+  #    timeout: 10s
+  #    retries: 5
+  #  networks:
+  #    - back_network
+
+  #keycloak:
+  #  container_name: keycloak
+  #  build:
+  #    context: .
+  #    dockerfile: ./auth-service/Dockerfile
+ #   restart: unless-stopped
+ #   environment:
+  #    KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+   #   KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+   #   KC_DB: mysql
+   #   KC_DB_URL: jdbc:mysql://mysql_keycloak:3306/${KEYCLOAK_DB_NAME}
+  #    KC_DB_USERNAME: ${KEYCLOAK_DB_USER}
+   #   KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+   #   KC_HEALTH_ENABLED: 'true'
+   #   KC_METRICS_ENABLED: 'true'
+   #   KEYCLOAK_IMPORT: /opt/keycloak/data/import/back-dmh-realm.json
+  #  ports:
+  #    - "9092:8080"
+  #  healthcheck:
+   #   test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+   #   interval: 15s
+   #   timeout: 2s
+  #    retries: 15
+   # depends_on:
+   #   mysql_keycloak:
+  #      condition: service_healthy
+  #  networks:
+  #    - back_network
+  #  volumes:
+  #    - ./realm-export.json:/opt/keycloak/data/import/back-dmh-realm.json
+
+#volumes:
+#  mysql_user_data:
+#  mysql_keycloak_data:
+
+#networks:
+#  back_network:
+#    driver: bridge

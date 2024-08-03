@@ -1,0 +1,26 @@
+# Maven specific
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+
+# IntelliJ IDEA specific
+.idea/
+*.iml
+*.iws
+out/
+
+# VS Code specific
+.vscode/
+
+# Log files
+*.log
+
+# Local environment settings
+*.env
+
+# Mac specific
+.DS_Store
+
+# Default ignored files
+/shelf/
+/workspace.xml
