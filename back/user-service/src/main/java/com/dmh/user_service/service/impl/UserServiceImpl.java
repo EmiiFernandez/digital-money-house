@@ -1,11 +1,13 @@
 package com.dmh.user_service.service.impl;
 
+import com.dmh.user_service.client.AccountClient;
+import com.dmh.user_service.client.IAccountClient;
+import com.dmh.user_service.dto.NewUserResponse;
 import com.dmh.user_service.dto.UserDTO;
 import com.dmh.user_service.entity.User;
 import com.dmh.user_service.repository.IUserRepository;
 import com.dmh.user_service.service.IUserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -18,32 +20,32 @@ import java.util.Optional;
 public class UserServiceImpl implements IUserService {
 
     @Autowired
-    IUserRepository userRepository;
+    private IUserRepository userRepository;
 
     @Autowired
-    ObjectMapper mapper;
+    private IAccountClient accountClient;
 
-    @Override
-    public UserDTO createUser(UserDTO userDTO) {
-        try {
-            if (userRepository.existsByEmail(userDTO.getEmail())) {
-                throw new RuntimeException("El email ya se encuentra en nuestra base de datos");
-            }
+    @Autowired
+    private ObjectMapper mapper;
 
-            User user = new User();
-            BeanUtils.copyProperties(userDTO, user);
+    public NewUserResponse createUser(UserDTO userDTO) {
+        User savedUser = mapper.convertValue(userDTO, User.class);
+        userRepository.save(savedUser);
 
-            userRepository.save(user);
+        AccountClient account = new AccountClient();
+        account.setUser_id(savedUser.getUser_id()); // Set the user ID for the account
+        AccountClient createdAccount = accountClient.createAccount(account);
 
-            return userDTO;
+        NewUserResponse response = new NewUserResponse();
+        response.setUser_id(savedUser.getUser_id());
+        response.setEmail(savedUser.getEmail());
+        response.setAccount_id(createdAccount.getId());
 
-        } catch (Exception e) {
-            throw new RuntimeException("Error al crear el usuario en la base de datos: " + e.getMessage(), e);
-        }
+        return response;
     }
+ /* }
 
-
-    @Override
+  @Override
     public UserDTO updateUser(Integer id, UserDTO userDTO) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con el id: " + id));
@@ -58,7 +60,7 @@ public class UserServiceImpl implements IUserService {
         userRepository.save(user);
 
         return userDTO;
-    }
+    }*/
 
     @Override
     public List<UserDTO> getAllUsers() throws DataAccessException {
@@ -74,7 +76,7 @@ public class UserServiceImpl implements IUserService {
             return usersDTOS;
 
         } catch (DataAccessException e) {
-            throw new RuntimeException("Error al crear el usuario en la base de datos" + e.getMessage());
+            throw new RuntimeException("Error en la base de datos" + e.getMessage());
         }
 
     }

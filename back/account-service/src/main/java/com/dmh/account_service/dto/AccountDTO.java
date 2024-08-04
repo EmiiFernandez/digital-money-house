@@ -8,6 +8,8 @@ import lombok.*;
 @Getter
 @Setter
 public class AccountDTO {
+    @Setter(AccessLevel.NONE)
+    private Integer id;
     private String alias;
     private Number available_amount;
     private String cvu;
