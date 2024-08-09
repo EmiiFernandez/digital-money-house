@@ -44,6 +44,7 @@ public class UserController {
     public Optional<User> getUserById(@PathVariable("id") Integer id) {
         Optional<User> user = userService.getUserById(id);
         return user;
+
     }
 
     @GetMapping
