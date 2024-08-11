@@ -8,7 +8,6 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Dashboard from './pages/Dashboard';
 import { useKeycloak } from '@react-keycloak/web';
 
-
 // pages
 const Login = React.lazy(() => import('./pages/Login'));
 const Register = React.lazy(() => import('./pages/Register'));
@@ -21,6 +20,7 @@ const Profile = React.lazy(() => import('./pages/Profile'));
 const PageNotFound = React.lazy(() => import('./pages/PageNotFound'));
 
 function App() {
+
   const { keycloak, initialized } = useKeycloak()
 
   useEffect(() => {

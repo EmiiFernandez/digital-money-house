@@ -17,7 +17,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const client = new Keycloak({
     realm: 'dmh_realm_dev',
-    url: 'http://localhost:3000',
+    url: 'http://localhost:9092',
     clientId: 'front-dmh-client',
   });
 

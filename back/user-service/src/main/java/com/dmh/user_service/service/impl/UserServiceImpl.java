@@ -10,6 +10,7 @@ import com.dmh.user_service.service.IUserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -28,17 +29,25 @@ public class UserServiceImpl implements IUserService {
     @Autowired
     private ObjectMapper mapper;
 
-    public NewUserResponse createUser(UserDTO userDTO) {
-        User savedUser = mapper.convertValue(userDTO, User.class);
-        userRepository.save(savedUser);
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
+    public NewUserResponse createUser(UserDTO userDTO) {
+        User user = mapper.convertValue(userDTO, User.class);
+
+        // Encode the password before saving
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        userRepository.save(user);
+
+        // Set the user ID for the account and create it
         AccountClient account = new AccountClient();
-        account.setUser_id(savedUser.getUser_id()); // Set the user ID for the account
+        account.setUser_id(user.getUser_id());
         AccountClient createdAccount = accountClient.createAccount(account);
 
+        // Prepare the response
         NewUserResponse response = new NewUserResponse();
-        response.setUser_id(savedUser.getUser_id());
-        response.setEmail(savedUser.getEmail());
+        response.setUser_id(user.getUser_id());
+        response.setEmail(user.getEmail());
         response.setAccount_id(createdAccount.getId());
 
         return response;
