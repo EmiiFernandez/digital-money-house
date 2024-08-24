@@ -102,3 +102,24 @@ public class UserServiceImpl implements IUserService {
         userRepository.deleteById(id);
     }
 }
+/*
+   private final UserRepository userRepository;
+    private final SecurityService securityService;
+
+    @Override
+    public void createUser(NewUserRecord userRecord) {
+
+        User user = User.builder()
+                .id(securityService.getUserId())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .countryIso2(userRecord.countryIso2())
+                .dob(userRecord.dob())
+                .gender(userRecord.gender())
+                .name(userRecord.name())
+                .language(userRecord.language()).build();
+
+        User save = userRepository.save(user);
+    }
+
+ */

@@ -1,16 +1,14 @@
-package com.dmh.user_service.configuration;
+package com.dmh.auth_service.config;
 
+import jakarta.ws.rs.HttpMethod;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -18,6 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+
     private final JwtAuthConverter jwtAuthConverter;
 
     @Bean
@@ -26,7 +26,8 @@ public class SecurityConfig {
         return (web) -> {
             web.ignoring().requestMatchers(
                     HttpMethod.POST,
-                    "/public/**"
+                    "/public/**",
+                    "/users"
             );
             web.ignoring().requestMatchers(
                     HttpMethod.GET,
@@ -34,11 +35,14 @@ public class SecurityConfig {
             );
             web.ignoring().requestMatchers(
                     HttpMethod.DELETE,
-                    "/public/**"
+                    "/public/**",
+                    "/users/{id}"
             );
             web.ignoring().requestMatchers(
                     HttpMethod.PUT,
-                    "/public/**"
+                    "/public/**",
+                    "/users/{id}/send-verification-email",
+                    "/users/forgot-password"
 
             );
             web.ignoring().requestMatchers(
@@ -68,10 +72,5 @@ public class SecurityConfig {
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 }

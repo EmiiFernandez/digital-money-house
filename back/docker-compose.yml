@@ -1,42 +1,62 @@
 services:
   #eureka-server:
-  #    container_name: eureka-server
-  #    build:
-  #      context: .
-  #      dockerfile: ./eureka-server/Dockerfile
-  #    ports:
-  #      - "8761:8761"
-  #    networks:
- #      - back_network
+      #container_name: eureka-server
+      #build:
+        #context: .
+        #dockerfile: ./eureka-server/Dockerfile
+      #ports:
+        #- "8761:8761"
+      #networks:
+        #- back_network
 
- # config-server:
- #  container_name: config-server
-  #  build:
- #     context: .
- #     dockerfile: ./config-server/Dockerfile
- #   ports:
- #     - "8888:8888"
-  #  environment:
-   #   - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-  #  depends_on:
-  #    - eureka-server
- #   networks:
-   #   - back_network
+  #config-server:
+    #container_name: config-server
+    #build:
+      #context: .
+      #dockerfile: ./config-server/Dockerfile
+    #ports:
+      #- "8888:8888"
+    #environment:
+      #- EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    #depends_on:
+      #- eureka-server
+    #networks:
+      #- back_network
 
- # gateway:
- #   container_name: gateway
- #   build:
- #     context: .
- #     dockerfile: ./gateway/Dockerfile
-  #  ports:
-  #    - "9091:8085"
-  #  environment:
-  #    - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-  #  depends_on:
-  #    - eureka-server
- #     - config-server
- #   networks:
- #     - back_network
+  #gateway:
+    #container_name: gateway
+    #build:
+      #context: .
+      #dockerfile: ./gateway/Dockerfile
+    #ports:
+      #- "9091:8085"
+    #environment:
+      #- EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    #depends_on:
+      #- eureka-server
+      #- config-server
+    #networks:
+      #- back_network
+
+  #user-service:
+    #container_name: user-service
+    #env_file:
+      #- .env
+    #build:
+      #context: .
+      #dockerfile: ./user-service/Dockerfile
+    #environment:
+      #MYSQL_DATABASE: ${USER_DB_DATABASE}
+      #MYSQL_USER: ${USER_DB_USERNAME}
+      #MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    #networks:
+      #- back_network
+    #depends_on:
+      #- eureka-server
+      #- config-server
+      #- mysql_user_service
+    #ports:
+      #- "8081:8081"
 
   mysql_user_service:
     container_name: mysql_user_service
@@ -51,6 +71,24 @@ services:
       - "3307:3306"
     volumes:
       - mysql_user_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - back_network
+
+  mysql_account_service:
+    container_name: mysql_account_service
+    image: mysql:latest
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${ACCOUNT_DB_DATABASE}
+      MYSQL_USER: ${ACCOUNT_DB_USERNAME}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_account_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - back_network
 
@@ -63,7 +101,7 @@ services:
       POSTGRES_USER: ${KEYCLOAK_DB_USER}
       POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
     ports:
-      - "3308:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -99,6 +137,7 @@ services:
 
 volumes:
   mysql_user_data:
+  mysql_account_data:
   postgres_data:
 
 networks:
