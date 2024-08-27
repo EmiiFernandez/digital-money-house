@@ -2,40 +2,54 @@ package com.dmh.gateway.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.web.SecurityFilterChain;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.stream.Collectors;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebFluxSecurity
 public class SecurityConfig {
 
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public WebSecurityCustomizer webSecurityCustomizer() {
 
-// Note: Please change '/mp-api/**' to your desired rest controller path.
-        httpSecurity
-                .authorizeHttpRequests(registry -> registry
-                        .requestMatchers("/login", "/logout", "/").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .oauth2ResourceServer(oauth2Configurer -> oauth2Configurer.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(jwt -> {
-                    Map<String, Collection<String>> realmAccess = jwt.getClaim("realm_access");
-                    Collection<String> roles = realmAccess.get("roles");
-                    var grantedAuthorities = roles.stream()
-                            .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                            .collect(Collectors.toList());
-                    return new JwtAuthenticationToken(jwt, grantedAuthorities);
-                })))
-        ;
+        return (web) -> {
+            web.ignoring().requestMatchers(
+                    HttpMethod.POST,
+                    "/social/public/**",
+                    "/messaging/public/**",
+                    "/api/auth/public/**",
+                    "/api/auth/users"
+            );
+            web.ignoring().requestMatchers(
+                    HttpMethod.GET,
+                    "/social/public/**",
+                    "/messaging/public/**",
+                    "/api/auth/public/**"
+            );
+            web.ignoring().requestMatchers(
+                    HttpMethod.DELETE,
+                    "/social/public/**",
+                    "/messaging/public/**",
+                    "/api/auth/public/**"
+            );
+            web.ignoring().requestMatchers(
+                    HttpMethod.PUT,
+                    "/social/public/**",
+                    "/messaging/public/**",
+                    "/api/auth/public/**",
+                    "/api/auth/users/{id}/send-verification-email",
+                    "/api/auth/users/forgot-password"
+            );
+            web.ignoring().requestMatchers(
+                            HttpMethod.OPTIONS,
+                            "/**"
+                    )
+                    .requestMatchers("/v3/api-docs/**", "/configuration/**", "/swagger-ui/**",
+                            "/swagger-resources/**", "/swagger-ui.html", "/webjars/**", "/api-docs/**", "/actuator/health");
 
-        return httpSecurity.build();
+        };
     }
+
 }

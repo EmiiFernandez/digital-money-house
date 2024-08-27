@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class KeycloakConfig {
 
-    @Value("${app.keycloak.clientId}")
+    @Value("${app.keycloak.admin.clientId}")
     private String clientId;
-    @Value("${app.keycloak.clientSecret}")
+    @Value("${app.keycloak.admin.clientSecret}")
     private String clientSecret;
     @Value("${app.keycloak.realm}")
     private String realm;

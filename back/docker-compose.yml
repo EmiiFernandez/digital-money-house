@@ -94,7 +94,7 @@ services:
 
   postgres_keycloak:
     container_name: postgres_keycloak
-    image: postgres:16
+    image: postgres:latest
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${KEYCLOAK_DB_NAME}
@@ -104,6 +104,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - back_network
     healthcheck:
@@ -120,13 +121,16 @@ services:
     restart: unless-stopped
     environment:
       KC_DB: postgres
+      KC_DB_SCHEMA: public
       KC_DB_URL_HOST: postgres_keycloak
       KC_DB_URL_DATABASE: ${KEYCLOAK_DB_NAME}
       KC_DB_USERNAME: ${KEYCLOAK_DB_USER}
       KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_DB_URL: jdbc:postgresql://postgres_keycloak:5432/keycloak_db
       KEYCLOAK_ADMIN: ${KEYCLOAK_DB_USER}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KEYCLOAK_JDBC_PARAMS: 'sslmode=require'
+      KC_HOSTNAME: localhost
+      KC_FEATURES: token-exchange,admin-fine-grained-authz
     ports:
       - "9092:8080"
     depends_on:

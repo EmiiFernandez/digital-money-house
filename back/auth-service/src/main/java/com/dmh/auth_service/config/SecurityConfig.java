@@ -17,7 +17,6 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-
     private final JwtAuthConverter jwtAuthConverter;
 
     @Bean
@@ -26,8 +25,9 @@ public class SecurityConfig {
         return (web) -> {
             web.ignoring().requestMatchers(
                     HttpMethod.POST,
-                    "/public/**",
-                    "/users"
+                    "/api/auth/users",
+                    "/users",
+                    "/public/**"
             );
             web.ignoring().requestMatchers(
                     HttpMethod.GET,
@@ -36,13 +36,13 @@ public class SecurityConfig {
             web.ignoring().requestMatchers(
                     HttpMethod.DELETE,
                     "/public/**",
-                    "/users/{id}"
+                    "/api/auth/users/{id}"
             );
             web.ignoring().requestMatchers(
                     HttpMethod.PUT,
-                    "/public/**",
-                    "/users/{id}/send-verification-email",
-                    "/users/forgot-password"
+                    "/api/auth/public/**",
+                    "/api/auth/users/{id}/send-verification-email",
+                    "/api/auth/users/forgot-password"
 
             );
             web.ignoring().requestMatchers(
