@@ -1,7 +1,0 @@
-export enum userActionTypes {
-  SET_USER = 'SET_USER',
-  SET_USER_LOADING = 'SET_USER_LOADING',
-  SET_USER_ERROR = 'SET_USER_ERROR',
-  LOG_OUT = 'LOG_OUT',
-  GET_PROFILE = 'GET_PROFILE',
-}
