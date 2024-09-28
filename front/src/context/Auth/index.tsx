@@ -16,7 +16,7 @@ export const AuthContext = createContext<{
 const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const client = new Keycloak({
-    url: 'http://localhost:9092', // Asegúrate que el path /auth esté incluido
+    url: 'http://localhost:9092',
     realm: 'dmh-realm-dev',
     clientId: 'auth-client-dev',
   });
@@ -24,7 +24,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <ReactKeycloakProvider
       authClient={client}
-      initOptions={{ onLoad: 'login-required' }} // Este parámetro forza el login en la carga de la app
+      initOptions={{ onLoad: 'check-sso' }} // Este parámetro forza el login en la carga de la app
     >
       {children}
     </ReactKeycloakProvider>

@@ -308,7 +308,7 @@ const Register = () => {
               }`}
               type="submit"
               variant="outlined"
-              disabled={hasErrors || !isDirty || isEmpty || isSubmiting}
+             // disabled={hasErrors || !isDirty || isEmpty || isSubmiting}
             >
               Ingresar
             </Button>

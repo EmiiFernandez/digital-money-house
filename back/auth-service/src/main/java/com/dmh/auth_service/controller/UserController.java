@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping()
 @RequiredArgsConstructor
 public class UserController {
 
@@ -16,7 +16,7 @@ public class UserController {
     private final UserService userService;
 
 
-    @PostMapping
+    @PostMapping("/register")
     public ResponseEntity<?> createUser(@RequestBody NewUserRecord newUserRecord) {
 
         userService.createUser(newUserRecord);

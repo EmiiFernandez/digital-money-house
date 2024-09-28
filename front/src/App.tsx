@@ -8,7 +8,6 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Dashboard from './pages/Dashboard';
 import { useKeycloak } from '@react-keycloak/web';
 
-
 // pages
 const Login = React.lazy(() => import('./pages/Login'));
 const Register = React.lazy(() => import('./pages/Register'));
@@ -24,9 +23,10 @@ function App() {
 
   const { keycloak, initialized } = useKeycloak();
 
+  // Ya no necesitamos llamar a keycloak.login() aquí
   useEffect(() => {
-    if (initialized && !keycloak.authenticated) {
-      keycloak.login();
+    if (initialized && keycloak.authenticated) {
+      // Lógica adicional si es necesario
     }
   }, [initialized, keycloak]);
 
@@ -57,6 +57,7 @@ function App() {
             <Route element={<Profile />} path={ROUTES.PROFILE} />
             <Route element={<ActivityDetails />} path={ROUTES.ACTIVITY_DETAILS} />
           </Route>
+          {/* Si no está autenticado, mostramos la página de Login o Register */}
           <Route
             element={
               keycloak.authenticated ? (

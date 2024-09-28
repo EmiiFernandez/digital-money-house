@@ -1,7 +1,9 @@
 package com.dmh.user_service.service.impl;
 
 import com.dmh.user_service.client.AccountClient;
+import com.dmh.user_service.client.AuthClient;
 import com.dmh.user_service.client.IAccountClient;
+import com.dmh.user_service.client.IAuthClient;
 import com.dmh.user_service.dto.NewUserResponse;
 import com.dmh.user_service.dto.UserDTO;
 import com.dmh.user_service.entity.User;
@@ -32,6 +34,9 @@ public class UserServiceImpl implements IUserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private IAuthClient iauthClient;
+
     public NewUserResponse createUser(UserDTO userDTO) {
         User user = mapper.convertValue(userDTO, User.class);
 
@@ -49,6 +54,15 @@ public class UserServiceImpl implements IUserService {
         response.setUser_id(user.getUser_id());
         response.setEmail(user.getEmail());
         response.setAccount_id(createdAccount.getId());
+
+        //Registrar el usuario de Keycloak
+        AuthClient authClient = new AuthClient();
+        authClient.setFirstName(userDTO.getFirstname());
+        authClient.setLastName(userDTO.getLastname());
+        authClient.setPassword(userDTO.getPassword());
+        authClient.setUsername(userDTO.getEmail());
+
+        iauthClient.createUser(authClient);
 
         return response;
     }

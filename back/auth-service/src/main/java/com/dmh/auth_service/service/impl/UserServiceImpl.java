@@ -14,6 +14,7 @@ import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Objects;
@@ -26,7 +27,6 @@ public class UserServiceImpl implements UserService {
     @Value("${app.keycloak.realm}")
     private String realm;
     private final Keycloak keycloak;
-
 
     @Override
     public void createUser(NewUserRecord newUserRecord) {

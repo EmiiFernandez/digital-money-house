@@ -32,7 +32,7 @@ public class SecurityConfig {
         return (web) -> {
             web.ignoring().requestMatchers(
                     HttpMethod.POST,
-                    "/api/auth/users",
+                    "/api/auth/",
                     "/users",
                     "/public/**"
             );
