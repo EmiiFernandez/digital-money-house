@@ -1,4 +1,4 @@
-package com.dmh.user_service.client;
+/*package com.dmh.user_service.client;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,3 +13,4 @@ public class AuthClient {
 
     }
 
+*/
