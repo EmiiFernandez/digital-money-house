@@ -7,10 +7,17 @@ import com.dmh.account_service.repository.AccountRepository;
 import com.dmh.account_service.service.AccountService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.security.SecureRandom;
+import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -26,33 +33,59 @@ public class AccountServiceImpl implements AccountService {
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
+
     public Account createAccount(Account account) {
         Optional<UserClient> user = userServiceClient.getUserById(account.getUser_id());
 
         Account newAccount = new Account();
-        newAccount.setAlias(generateAlias(user.orElse(null)));
+        newAccount.setAlias(generateAlias());
         newAccount.setAvailable_amount(0);
         newAccount.setCvu(generateCvu());
         newAccount.setUser_id(user.get().getUser_id());
 
         return accountRepository.save(newAccount);
+
     }
 
-    /*@Override
-    public Integer createAccountForUser(Integer user_id) {
-        Optional<UserClient> user = userServiceClient.getUserById(user_id);
-
-        Account account = new Account();
-        account.setAlias(generateAlias(user.orElse(null)));
-        account.setAvailable_amount(0);
-        account.setCvu(generateCvu());
-        account.setUser_id(user.get().getUser_id());
-
-        Account newAccount = accountRepository.save(account);
-
-        return newAccount.getId();
+    public List<Account> getAllAccounts() {
+        return accountRepository.findAll();
     }
-*/
+
+    public Account getAccountById(Integer id) {
+        return accountRepository.findById(id).orElse(null);
+    }
+
+    public Account saveAccount(Account account) {
+        return accountRepository.save(account);
+    }
+
+    public void deleteAccount(Integer id) {
+        accountRepository.deleteById(id);
+    }
+
+    public Account updateAccountAlias(Integer id, String alias) {
+        Account account = getAccountById(id);
+        if (account != null) {
+            account.setAlias(alias);
+            return accountRepository.save(account);
+        }
+        return null;
+    }
+
+    private String generateAlias() {
+        String alias = "";
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new ClassPathResource("generateAlias.txt").getInputStream()))) {
+            String[] words = br.lines().toArray(String[]::new);
+            if (words.length > 0) {
+                Random random = new Random();
+                alias = words[random.nextInt(words.length)];
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return alias;
+    }
+
     private String generateCvu() {
         StringBuilder cvuBuilder = new StringBuilder();
         for (int i = 0; i < 22; i++) {
@@ -60,9 +93,5 @@ public class AccountServiceImpl implements AccountService {
             cvuBuilder.append(digit);
         }
         return cvuBuilder.toString();
-    }
-
-    private String generateAlias(UserClient user) {
-        return user.getFirstname().toUpperCase() + "." + user.getLastname().toUpperCase() + "." + user.getUser_id();
     }
 }
