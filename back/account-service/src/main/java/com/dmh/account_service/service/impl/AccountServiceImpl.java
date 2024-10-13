@@ -77,7 +77,7 @@ public class AccountServiceImpl implements AccountService {
             String alias = "";
             try (BufferedReader br = new BufferedReader(new InputStreamReader(new ClassPathResource("generateAlias.txt").getInputStream()))) {
                 String[] words = br.lines().toArray(String[]::new);
-                if (words.length > 2) {  
+                if (words.length > 2) {
                     Random random = new Random();
                     String word1 = words[random.nextInt(words.length)];
                     String word2 = words[random.nextInt(words.length)];
