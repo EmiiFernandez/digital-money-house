@@ -8,15 +8,15 @@ import lombok.*;
 @NoArgsConstructor
 @Getter
 @Setter
-@Table(name="accounts")
+@Table(name = "accounts")
 public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Setter(AccessLevel.NONE)
     private Integer id;
     private String alias;
-    private Number available_amount;
+    private Number available_amount = 0.00;
     private String cvu;
     private Integer user_id;
-
 }
+

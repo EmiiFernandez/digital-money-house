@@ -3,15 +3,16 @@ package com.dmh.account_service.service.impl;
 import com.dmh.account_service.client.IUserServiceClient;
 import com.dmh.account_service.client.UserClient;
 import com.dmh.account_service.entity.Account;
+import com.dmh.account_service.exceptions.ResourceNotFoundException;
+import com.dmh.account_service.exceptions.UserNotFoundException;
 import com.dmh.account_service.repository.AccountRepository;
 import com.dmh.account_service.service.AccountService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.SecureRandom;
@@ -28,23 +29,22 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     AccountRepository accountRepository;
 
-    @Autowired
-    ObjectMapper mapper;
-
     private static final SecureRandom secureRandom = new SecureRandom();
 
 
-    public Account createAccount(Account account) {
-        Optional<UserClient> user = userServiceClient.getUserById(account.getUser_id());
+    public Account createAccount(Integer userId) {
+       /* try {
+            Optional<UserClient> user = userServiceClient.getUserById(userId);
+        } catch (FeignException e) {
+            throw new UserNotFoundException("Usuario no encontrado");
+        }*/
 
-        Account newAccount = new Account();
-        newAccount.setAlias(generateAlias());
-        newAccount.setAvailable_amount(0);
-        newAccount.setCvu(generateCvu());
-        newAccount.setUser_id(user.get().getUser_id());
+         Account newAccount = new Account();
+            newAccount.setUser_id(userId);
+            newAccount.setAlias(generateAlias());
+            newAccount.setCvu(generateCvu());
 
-        return accountRepository.save(newAccount);
-
+            return accountRepository.save(newAccount);
     }
 
     public List<Account> getAllAccounts() {

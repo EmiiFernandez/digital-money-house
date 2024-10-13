@@ -1,4 +1,4 @@
-package com.dmh.user_service.client;
+/*package com.dmh.user_service.client;
 
 import com.dmh.user_service.model.NewUserRecord;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -12,3 +12,4 @@ public interface IAuthClient {
     public ResponseEntity<?> createUser(@RequestBody NewUserRecord newUserRecord);
 }
 
+*/

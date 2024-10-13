@@ -11,7 +11,4 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UserClient {
     private Integer user_id;
-    private String firstname;
-    private String lastname;
-
 }

@@ -1,17 +1,17 @@
 package com.dmh.user_service.controller;
 
-import com.dmh.user_service.dto.NewUserResponse;
-import com.dmh.user_service.dto.UserDTO;
+import com.dmh.user_service.dto.ResponseNewUser;
+import com.dmh.user_service.dto.RequestNewUser;
 import com.dmh.user_service.entity.User;
-import com.dmh.user_service.exception.ErrorResponse;
-import com.dmh.user_service.service.impl.UserServiceImpl;
-import jakarta.ws.rs.NotFoundException;
+import com.dmh.user_service.exceptions.ErrorResponse;
+import com.dmh.user_service.exceptions.ResourceNotFoundException;
+import com.dmh.user_service.service.IUserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -19,56 +19,34 @@ import java.util.Optional;
 public class UserController {
 
     @Autowired
-    private UserServiceImpl userService;
+    private IUserService userService;
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody UserDTO userDTO) {
-        try {
-            NewUserResponse newUserResponse = userService.createUser(userDTO);
-            return ResponseEntity.status(201).body(newUserResponse);
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Resource not found"));
-        } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Forbidden"));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Bad request"));
-        } catch (Error e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("Conflict"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("Internal server error"));
-        }
+    public ResponseEntity<?> createUser(@Valid @RequestBody RequestNewUser requestNewUser) {
+        ResponseNewUser responseNewUser = userService.createUser(requestNewUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseNewUser);
     }
 
 
-    @GetMapping("/{id}")
-    public Optional<User> getUserById(@PathVariable("id") Integer id) {
-        Optional<User> user = userService.getUserById(id);
-        return user;
+    @GetMapping("/{user_id}")
+    public ResponseEntity<?> getUserById(@PathVariable("user_id") Integer user_id) {
+        Optional<User> user = userService.getUserById(user_id);
 
+        return ResponseEntity.ok(user);
     }
+}
 
+/*
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
-        try {
-            List<UserDTO> users = userService.getAllUsers();
+            List<RequestNewUser> users = userService.getAllUsers();
             return new ResponseEntity<>(users, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Resource not found"));
-        } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Forbidden"));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Bad request"));
-        } catch (Error e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("Conflict"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("Internal server error"));
-        }
-    }
+    }*/
 
    /* @PatchMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Integer id, @RequestBody UserDTO userDTO, @RequestHeader("Authorization") String token) {
-        UserDTO updatedUser = userService.updateUser(id, userDTO);
+    public ResponseEntity<RequestNewUser> updateUser(@PathVariable Integer id, @RequestBody RequestNewUser userDTO, @RequestHeader("Authorization") String token) {
+        RequestNewUser updatedUser = userService.updateUser(id, userDTO);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }*/
-}
+
 

@@ -1,4 +1,4 @@
-package com.dmh.gateway.configuration;
+/*package com.dmh.gateway.configuration;
 
 import jakarta.ws.rs.HttpMethod;
 import lombok.RequiredArgsConstructor;
@@ -55,3 +55,4 @@ public class SecurityConfig {
     }
 
 }
+*/

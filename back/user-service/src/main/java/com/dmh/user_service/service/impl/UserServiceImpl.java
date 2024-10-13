@@ -1,61 +1,54 @@
 package com.dmh.user_service.service.impl;
 
 import com.dmh.user_service.client.AccountClient;
-import com.dmh.user_service.client.IAccountClient;
-import com.dmh.user_service.dto.NewUserResponse;
-import com.dmh.user_service.dto.UserDTO;
+import com.dmh.user_service.client.IAccountServiceClient;
+import com.dmh.user_service.dto.ResponseNewUser;
+import com.dmh.user_service.dto.RequestNewUser;
 import com.dmh.user_service.entity.User;
+import com.dmh.user_service.exceptions.ResourceNotFoundException;
+import com.dmh.user_service.mapper.UserMapper;
 import com.dmh.user_service.repository.IUserRepository;
 import com.dmh.user_service.service.IUserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements IUserService {
 
-    @Autowired
-    private IUserRepository userRepository;
+    private final IUserRepository userRepository;
+    private final IAccountServiceClient accountClient;
+    private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
-    @Autowired
-    private IAccountClient accountClient;
 
-    @Autowired
-    private ObjectMapper mapper;
+    // "Create a new user with a new account"
+    public ResponseNewUser createUser(RequestNewUser requestNewUser) {
+        User user = userMapper.requestNewUser(requestNewUser);
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-    public NewUserResponse createUser(UserDTO userDTO) {
-        User user = mapper.convertValue(userDTO, User.class);
-
-        // Encode the password before saving
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         userRepository.save(user);
 
-        // Set the user ID for the account and create it
-        AccountClient account = new AccountClient();
-        account.setUser_id(user.getUser_id());
-        AccountClient createdAccount = accountClient.createAccount(account);
+        AccountClient createdAccount = accountClient.createAccount(user.getUser_id());
+            System.out.println("Cuenta creada exitosamente: " + createdAccount);
 
-        // Prepare the response
-        NewUserResponse response = new NewUserResponse();
-        response.setUser_id(user.getUser_id());
-        response.setEmail(user.getEmail());
-        response.setAccount_id(createdAccount.getId());
+        ResponseNewUser response = userMapper.responseNewUser(user, createdAccount.getId());
 
         return response;
+    }
+
+     public Optional<User> getUserById(Integer userId) {
+        return Optional.ofNullable(userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId)));
     }
  /* }
 
   @Override
-    public UserDTO updateUser(Integer id, UserDTO userDTO) {
+    public RequestNewUser updateUser(Integer id, RequestNewUser userDTO) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con el id: " + id));
 
@@ -70,16 +63,16 @@ public class UserServiceImpl implements IUserService {
 
         return userDTO;
     }*/
-
+/*
     @Override
-    public List<UserDTO> getAllUsers() throws DataAccessException {
+    public List<RequestNewUser> getAllUsers() throws DataAccessException {
         try {
             List<User> users = userRepository.findAll();
-            List<UserDTO> usersDTOS = new ArrayList<>();
+            List<RequestNewUser> usersDTOS = new ArrayList<>();
 
             for (User user : users) {
-                UserDTO userDTO = mapper.convertValue(user, UserDTO.class);
-                usersDTOS.add(userDTO);
+                RequestNewUser requestNewUser = mapper.convertValue(user, RequestNewUser.class);
+                usersDTOS.add(requestNewUser);
             }
 
             return usersDTOS;
@@ -90,17 +83,13 @@ public class UserServiceImpl implements IUserService {
 
     }
 
-    @Override
-    public Optional<User> getUserById(Integer id) {
-        return userRepository.findById(id);
-    }
 
     @Override
     public void deleteUser(Integer id) {
         userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con el id: " + id));
         userRepository.deleteById(id);
-    }
+    }*/
 }
 /*
    private final UserRepository userRepository;

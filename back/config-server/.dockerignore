@@ -8,6 +8,7 @@
 **/.classpath
 **/.dockerignore
 **/.env
+**/.private-key.pem
 **/.factorypath
 **/.git
 **/.gitignore
