@@ -3,6 +3,8 @@ package com.dmh.account_service.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,8 +17,13 @@ public class Account {
     @Setter(AccessLevel.NONE)
     private Integer id;
     private String alias;
-    private Number available_amount = 0.00;
+    private BigDecimal available_amount;
     private String cvu;
     private Integer user_id;
+
+    @PrePersist
+    protected void onCreate() {
+        this.available_amount = BigDecimal.valueOf(0.00);
+    }
 }
 

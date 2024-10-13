@@ -34,7 +34,6 @@ public class UserServiceImpl implements IUserService {
         userRepository.save(user);
 
         AccountClient createdAccount = accountClient.createAccount(user.getUser_id());
-            System.out.println("Cuenta creada exitosamente: " + createdAccount);
 
         ResponseNewUser response = userMapper.responseNewUser(user, createdAccount.getId());
 
