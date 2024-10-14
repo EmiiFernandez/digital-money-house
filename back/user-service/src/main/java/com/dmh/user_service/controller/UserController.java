@@ -1,5 +1,6 @@
 package com.dmh.user_service.controller;
 
+import com.dmh.user_service.dto.ResponseGetUser;
 import com.dmh.user_service.dto.ResponseNewUser;
 import com.dmh.user_service.dto.RequestNewUser;
 import com.dmh.user_service.entity.User;
@@ -28,10 +29,11 @@ public class UserController {
 
     @GetMapping("/{user_id}")
     public ResponseEntity<?> getUserById(@PathVariable("user_id") Integer user_id) {
-        Optional<User> user = userService.getUserById(user_id);
+        ResponseGetUser user = userService.getUserById(user_id);
 
         return ResponseEntity.ok(user);
     }
+    
 }
 
 /*

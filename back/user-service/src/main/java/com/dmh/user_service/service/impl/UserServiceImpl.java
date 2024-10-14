@@ -2,6 +2,7 @@ package com.dmh.user_service.service.impl;
 
 import com.dmh.user_service.client.AccountClient;
 import com.dmh.user_service.client.IAccountServiceClient;
+import com.dmh.user_service.dto.ResponseGetUser;
 import com.dmh.user_service.dto.ResponseNewUser;
 import com.dmh.user_service.dto.RequestNewUser;
 import com.dmh.user_service.entity.User;
@@ -49,10 +50,15 @@ public class UserServiceImpl implements IUserService {
         return response;
     }
 
-     public Optional<User> getUserById(Integer userId) {
-        return Optional.ofNullable(userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + userId)));
+    //"Get email, firstname, lastname, phone, and dni from a specific user."
+    public ResponseGetUser getUserById(Integer user_id) {
+        User user = userRepository.findById(user_id)
+                .orElseThrow(() -> new NotFoundException("User not found by ID: " + user_id));
+
+        return userMapper.responseGetUser(user);
     }
+
+
  /* }
 
   @Override
