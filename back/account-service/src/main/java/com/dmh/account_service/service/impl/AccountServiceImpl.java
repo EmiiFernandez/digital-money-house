@@ -2,12 +2,15 @@ package com.dmh.account_service.service.impl;
 
 import com.dmh.account_service.client.IUserServiceClient;
 import com.dmh.account_service.client.UserClient;
+import com.dmh.account_service.dto.ResponseAccount;
 import com.dmh.account_service.entity.Account;
 import com.dmh.account_service.exceptions.ResourceNotFoundException;
 import com.dmh.account_service.exceptions.UserNotFoundException;
+import com.dmh.account_service.mapper.AccountMapper;
 import com.dmh.account_service.repository.AccountRepository;
 import com.dmh.account_service.service.AccountService;
 import feign.FeignException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -19,15 +22,17 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Service
 public class AccountServiceImpl implements AccountService {
 
-    @Autowired
-    IUserServiceClient userServiceClient;
+    private final IUserServiceClient userServiceClient;
 
-    @Autowired
-    AccountRepository accountRepository;
+    private final AccountRepository accountRepository;
+
+    private final AccountMapper accountMapper;
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -45,6 +50,15 @@ public class AccountServiceImpl implements AccountService {
         newAccount.setCvu(generateCvu());
 
         return accountRepository.save(newAccount);
+    }
+
+    //"Find account by user_id in the token."
+    public ResponseAccount getAccountByUserId(Integer user_id) {
+        Account account = accountRepository.findAccountByUserId(user_id)
+                .orElseThrow(() -> new UserNotFoundException("Cuenta no encontrada para el usuario: " + user_id));
+
+
+        return accountMapper.responseAccount(account);
     }
 
     public List<Account> getAllAccounts() {

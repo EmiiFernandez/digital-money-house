@@ -1,6 +1,6 @@
-CREATE DATABASE IF NOT EXISTS account_service_db;
+CREATE DATABASE IF NOT EXISTS account_db;
 
-USE account_service_db;
+USE account_db;
 
 CREATE TABLE IF NOT EXISTS users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,

@@ -3,8 +3,6 @@ package com.dmh.user_service.controller;
 import com.dmh.user_service.dto.ResponseNewUser;
 import com.dmh.user_service.dto.RequestNewUser;
 import com.dmh.user_service.entity.User;
-import com.dmh.user_service.exceptions.ErrorResponse;
-import com.dmh.user_service.exceptions.ResourceNotFoundException;
 import com.dmh.user_service.service.IUserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

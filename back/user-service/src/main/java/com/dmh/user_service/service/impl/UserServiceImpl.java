@@ -5,7 +5,8 @@ import com.dmh.user_service.client.IAccountServiceClient;
 import com.dmh.user_service.dto.ResponseNewUser;
 import com.dmh.user_service.dto.RequestNewUser;
 import com.dmh.user_service.entity.User;
-import com.dmh.user_service.exceptions.ResourceNotFoundException;
+import com.dmh.user_service.exceptions.ConflictException;
+import com.dmh.user_service.exceptions.NotFoundException;
 import com.dmh.user_service.mapper.UserMapper;
 import com.dmh.user_service.repository.IUserRepository;
 import com.dmh.user_service.service.IUserService;
@@ -27,6 +28,14 @@ public class UserServiceImpl implements IUserService {
 
     // "Create a new user with a new account"
     public ResponseNewUser createUser(RequestNewUser requestNewUser) {
+        if (userRepository.findByEmail(requestNewUser.email()).isPresent()) {
+            throw new ConflictException("Email already registered.");
+        }
+
+        if (userRepository.findByDni(requestNewUser.dni()).isPresent()) {
+            throw new ConflictException("DNI already registered.");
+        }
+
         User user = userMapper.requestNewUser(requestNewUser);
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -42,7 +51,7 @@ public class UserServiceImpl implements IUserService {
 
      public Optional<User> getUserById(Integer userId) {
         return Optional.ofNullable(userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId)));
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + userId)));
     }
  /* }
 
