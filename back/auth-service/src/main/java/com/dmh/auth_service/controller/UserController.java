@@ -1,4 +1,4 @@
-package com.dmh.auth_service.controller;
+/*package com.dmh.auth_service.controller;
 
 import com.dmh.auth_service.model.NewUserRecord;
 import com.dmh.auth_service.service.UserService;
@@ -59,3 +59,4 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUserGroups(id));
     }
 }
+*/

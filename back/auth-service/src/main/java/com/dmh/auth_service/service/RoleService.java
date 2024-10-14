@@ -1,4 +1,4 @@
-package com.dmh.auth_service.service;
+/*package com.dmh.auth_service.service;
 
 public interface RoleService {
 
@@ -6,3 +6,4 @@ public interface RoleService {
     void deleteRoleFromUser(String userId ,String roleName);
 
 }
+*/

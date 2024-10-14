@@ -1,4 +1,4 @@
-package com.dmh.auth_service.config;
+/*package com.dmh.auth_service.config;
 
 
 import org.springframework.core.convert.converter.Converter;
@@ -65,3 +65,4 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
     }
 
 }
+*/

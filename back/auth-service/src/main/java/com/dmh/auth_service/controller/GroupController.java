@@ -1,4 +1,4 @@
-package com.dmh.auth_service.controller;
+/*package com.dmh.auth_service.controller;
 
 import com.dmh.auth_service.service.GroupService;
 import lombok.RequiredArgsConstructor;
@@ -30,3 +30,4 @@ public class GroupController {
     }
 
 }
+*/

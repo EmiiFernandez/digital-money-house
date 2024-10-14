@@ -1,4 +1,4 @@
-package com.dmh.auth_service.service.impl;
+/*package com.dmh.auth_service.service.impl;
 
 import com.dmh.auth_service.service.RoleService;
 import com.dmh.auth_service.service.UserService;
@@ -50,3 +50,4 @@ public class RoleServiceImpl implements RoleService {
 
 }
 
+*/

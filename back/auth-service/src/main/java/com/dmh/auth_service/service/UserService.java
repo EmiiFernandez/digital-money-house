@@ -1,4 +1,4 @@
-package com.dmh.auth_service.service;
+/*package com.dmh.auth_service.service;
 
 import com.dmh.auth_service.model.NewUserRecord;
 import org.keycloak.admin.client.resource.UserResource;
@@ -18,3 +18,4 @@ public interface UserService {
     List<GroupRepresentation> getUserGroups(String userId);
 }
 
+*/

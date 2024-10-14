@@ -1,4 +1,4 @@
-package com.dmh.auth_service.service;
+/*package com.dmh.auth_service.service;
 
 public interface GroupService {
 
@@ -6,3 +6,4 @@ public interface GroupService {
     void deleteGroupFromUser(String userId ,String groupId);
 
 }
+*/

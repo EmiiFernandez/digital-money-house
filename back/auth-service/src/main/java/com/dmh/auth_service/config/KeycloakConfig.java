@@ -1,4 +1,4 @@
-package com.dmh.auth_service.config;
+/*package com.dmh.auth_service.config;
 
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -29,4 +29,4 @@ public class KeycloakConfig {
                 .serverUrl(serverUrl)
                 .build();
     }
-}
+}*/

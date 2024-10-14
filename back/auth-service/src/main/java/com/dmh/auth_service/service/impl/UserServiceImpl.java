@@ -1,4 +1,4 @@
-package com.dmh.auth_service.service.impl;
+/*package com.dmh.auth_service.service.impl;
 
 import com.dmh.auth_service.model.NewUserRecord;
 import com.dmh.auth_service.service.UserService;
@@ -114,4 +114,4 @@ public class UserServiceImpl implements UserService {
 
         return keycloak.realm(realm).users();
     }
-}
+}*/

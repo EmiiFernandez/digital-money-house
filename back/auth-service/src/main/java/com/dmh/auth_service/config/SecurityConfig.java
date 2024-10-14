@@ -1,4 +1,4 @@
-package com.dmh.auth_service.config;
+/*package com.dmh.auth_service.config;
 
 import jakarta.ws.rs.HttpMethod;
 import lombok.RequiredArgsConstructor;
@@ -97,3 +97,4 @@ public class SecurityConfig {
         return source;
     }
 }
+*/

@@ -1,4 +1,4 @@
-package com.dmh.auth_service.service.impl;
+/*package com.dmh.auth_service.service.impl;
 
 import com.dmh.auth_service.service.GroupService;
 import com.dmh.auth_service.service.UserService;
@@ -36,3 +36,4 @@ public class GroupServiceImpl implements GroupService {
     }
 }
 
+*/
