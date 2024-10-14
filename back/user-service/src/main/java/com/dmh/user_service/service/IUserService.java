@@ -1,5 +1,6 @@
 package com.dmh.user_service.service;
 
+import com.dmh.user_service.dto.RequestUpdateUser;
 import com.dmh.user_service.dto.ResponseGetUser;
 import com.dmh.user_service.dto.ResponseNewUser;
 import com.dmh.user_service.dto.RequestNewUser;
@@ -11,9 +12,5 @@ import java.util.Optional;
 public interface IUserService {
     ResponseNewUser createUser(RequestNewUser requestNewUser);
     ResponseGetUser getUserById(Integer user_id);
-
-    //  public RequestNewUser updateUser (Integer id, RequestNewUser userDTO);
-  //  public List<RequestNewUser> getAllUsers() throws DataAccessException;
-  //  public void deleteUser(Integer id);
-
+    ResponseGetUser updateUser(Integer user_id, RequestUpdateUser requestUpdateUser);
 }

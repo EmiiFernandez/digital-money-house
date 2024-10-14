@@ -1,5 +1,6 @@
 package com.dmh.user_service.controller;
 
+import com.dmh.user_service.dto.RequestUpdateUser;
 import com.dmh.user_service.dto.ResponseGetUser;
 import com.dmh.user_service.dto.ResponseNewUser;
 import com.dmh.user_service.dto.RequestNewUser;
@@ -33,7 +34,14 @@ public class UserController {
 
         return ResponseEntity.ok(user);
     }
-    
+
+    @PatchMapping("/{user_id}")
+    public ResponseEntity<ResponseGetUser> updateUser(
+            @PathVariable Integer user_id,
+            @RequestBody RequestUpdateUser updateUserRequest) {
+        ResponseGetUser updatedUser = userService.updateUser(user_id, updateUserRequest);
+        return ResponseEntity.ok(updatedUser);
+    }
 }
 
 /*
