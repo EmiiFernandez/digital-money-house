@@ -2,6 +2,7 @@ package com.dmh.account_service.service.impl;
 
 import com.dmh.account_service.client.IUserServiceClient;
 import com.dmh.account_service.client.UserClient;
+import com.dmh.account_service.dto.RequestAlias;
 import com.dmh.account_service.dto.ResponseAccount;
 import com.dmh.account_service.entity.Account;
 import com.dmh.account_service.exceptions.NotFoundException;
@@ -17,7 +18,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.SecureRandom;
-import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
@@ -34,6 +34,7 @@ public class AccountServiceImpl implements AccountService {
     private static final SecureRandom secureRandom = new SecureRandom();
 
 
+    //Create account by register user
     public Account createAccount(Integer user_id) {
         try {
             Optional<UserClient> user = userServiceClient.getUserById(user_id);
@@ -49,7 +50,7 @@ public class AccountServiceImpl implements AccountService {
         return accountRepository.save(newAccount);
     }
 
-    //"Find account by user_id in the token."
+    //"Find account by user_id in the token." //FALTA AGREGAR EL TOKEN
     public ResponseAccount getAccountByUserId(Integer user_id) {
         Account account = accountRepository.findAccountByUserId(user_id)
                 .orElseThrow(() -> new NotFoundException("Cuenta no encontrada para el usuario: " + user_id));
@@ -58,29 +59,16 @@ public class AccountServiceImpl implements AccountService {
         return accountMapper.responseAccount(account);
     }
 
-    public List<Account> getAllAccounts() {
-        return accountRepository.findAll();
-    }
+    //Update only the alias of the account. //FALTA AGREGAR EL TOKEN
+    public ResponseAccount updateAliasAccount(Integer account_id, RequestAlias requestAlias) {
+        Account account = accountRepository.findById(account_id)
+                .orElseThrow(() -> new NotFoundException("Account not found with id: " + account_id));
 
-    public Account getAccountById(Integer id) {
-        return accountRepository.findById(id).orElse(null);
-    }
+        accountMapper.updateAlias(requestAlias, account);
 
-    public Account saveAccount(Account account) {
-        return accountRepository.save(account);
-    }
+        accountRepository.save(account);
 
-    public void deleteAccount(Integer id) {
-        accountRepository.deleteById(id);
-    }
-
-    public Account updateAccountAlias(Integer id, String alias) {
-        Account account = getAccountById(id);
-        if (account != null) {
-            account.setAlias(alias);
-            return accountRepository.save(account);
-        }
-        return null;
+        return accountMapper.responseAccount(account);
     }
 
     private String generateAlias() {

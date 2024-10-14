@@ -2,6 +2,7 @@ package com.dmh.account_service.controller;
 
 import com.dmh.account_service.client.IUserServiceClient;
 import com.dmh.account_service.client.UserClient;
+import com.dmh.account_service.dto.RequestAlias;
 import com.dmh.account_service.dto.ResponseAccount;
 import com.dmh.account_service.entity.Account;
 import com.dmh.account_service.repository.AccountRepository;
@@ -42,10 +43,12 @@ public class AccountController {
         ResponseAccount account = accountService.getAccountByUserId(user_id);
         return ResponseEntity.ok(account);
     }
-/*
-    @GetMapping("/{id}")
-    public Optional<Account> getAccountById(@PathVariable Integer id) {
-        return accountRepository.findById(id);
+
+    @PatchMapping("/{user_id}")
+    public ResponseEntity<ResponseAccount> updateUser(
+            @PathVariable Integer account_id,
+            @RequestBody RequestAlias requestAlias) {
+        ResponseAccount updatedAlias = accountService.updateAliasAccount(account_id, requestAlias);
+        return ResponseEntity.ok(updatedAlias);
     }
-*/
 }
