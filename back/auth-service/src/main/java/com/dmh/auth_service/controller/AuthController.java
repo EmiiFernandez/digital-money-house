@@ -1,4 +1,4 @@
-package com.dmh.auth_service.controller;
+/*package com.dmh.auth_service.controller;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,3 +18,4 @@ public class AuthController {
 
     }
 }
+*/

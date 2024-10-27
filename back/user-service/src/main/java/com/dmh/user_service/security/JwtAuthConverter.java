@@ -1,5 +1,4 @@
-/*package com.dmh.user_service.configuration;
-
+package com.dmh.user_service.security;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -11,9 +10,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,47 +21,54 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
 
     private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
 
+    private final JwtAuthConverterProperties properties;
+
+    public JwtAuthConverter(JwtAuthConverterProperties properties) {
+        this.properties = properties;
+    }
 
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
         Collection<GrantedAuthority> authorities = Stream.concat(
                 jwtGrantedAuthoritiesConverter.convert(jwt).stream(),
-                extractResourceRoles(jwt).stream()).collect(Collectors.toSet());
+                Stream.concat(extractResourceRoles(jwt).stream(), extractResourceRolesRealm(jwt).stream())
+        ).collect(Collectors.toSet());
+
         return new JwtAuthenticationToken(jwt, authorities, getPrincipalClaimName(jwt));
     }
 
     private String getPrincipalClaimName(Jwt jwt) {
         String claimName = JwtClaimNames.SUB;
+        if (properties.getPrincipalAttribute() != null) {
+            claimName = properties.getPrincipalAttribute();
+        }
         return jwt.getClaim(claimName);
     }
 
     private Collection<? extends GrantedAuthority> extractResourceRoles(Jwt jwt) {
-
-        Map<String, Object> realmAccess = jwt.getClaim("realm_access");
-        Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
-
-        Collection<String> allRoles = new ArrayList<>();
+        Map<String, Object> resourceAccess = jwt.getClaim("realm_access");
+        Map<String, Object> resource;
         Collection<String> resourceRoles;
-        Collection<String> realmRoles ;
-
-        if(resourceAccess != null && resourceAccess.get("account") != null){
-            Map<String,Object> account =  (Map<String,Object>) resourceAccess.get("account");
-            if(account.containsKey("roles") ){
-                resourceRoles = (Collection<String>) account.get("roles");
-                allRoles.addAll(resourceRoles);
-            }
+        if (resourceAccess == null
+                || (resource = (Map<String, Object>) resourceAccess.get(properties.getResourceId())) == null
+                || (resourceRoles = (Collection<String>) resource.get("roles")) == null) {
+            return Set.of();
         }
-
-        if(realmAccess != null && realmAccess.containsKey("roles")){
-            realmRoles = (Collection<String>) realmAccess.get("roles");
-            allRoles.addAll(realmRoles);
-        }
-
-
-        return allRoles.stream()
+        return resourceRoles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                 .collect(Collectors.toSet());
     }
 
+    // Metodo para extraer los roles de realm del JWT
+    private Collection<? extends GrantedAuthority> extractResourceRolesRealm(Jwt jwt) {
+        Map<String, Object> resourceAccess = jwt.getClaim("realm_access");
+        Collection<String> resourceRoles;
+        if (resourceAccess == null
+                || (resourceRoles = (Collection<String>) resourceAccess.get("roles")) == null) {
+            return Set.of(); // Devolver un conjunto vacio si no hay roles de realm
+        }
+        return resourceRoles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                .collect(Collectors.toSet());
+    }
 }
-*/
