@@ -1,32 +1,51 @@
 package com.dmh.user_service.service.impl;
 
-import com.dmh.user_service.client.AccountClient;
-import com.dmh.user_service.client.IAccountServiceClient;
-import com.dmh.user_service.dto.RequestUpdateUser;
-import com.dmh.user_service.dto.ResponseGetUser;
-import com.dmh.user_service.dto.ResponseNewUser;
-import com.dmh.user_service.dto.RequestNewUser;
 import com.dmh.user_service.entity.User;
-import com.dmh.user_service.exceptions.ConflictException;
-import com.dmh.user_service.exceptions.NotFoundException;
-import com.dmh.user_service.mapper.UserMapper;
 import com.dmh.user_service.repository.IUserRepository;
-import com.dmh.user_service.service.IUserService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@RequiredArgsConstructor
+import java.util.List;
+
+
 @Service
-public class UserServiceImpl implements IUserService {
+public class UserServiceImpl {
 
-    private final IUserRepository userRepository;
-    private final IAccountServiceClient accountClient;
-    private final PasswordEncoder passwordEncoder;
-    private final UserMapper userMapper;
+    private IUserRepository userRepository;
+
+    @Autowired
+    public UserServiceImpl(IUserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    // Metodo para buscar un usuario por su ID
+    public User findById(String id) {
+        // Utiliza el metodo del repositorio para obtener el usuario por su ID
+        return userRepository.findById(id).orElse(null);
+    }
+
+    // Metodo para buscar una lista de usuarios por su nombre
+    public List<User> findByName(String name) {
+        // Utiliza el metodo del repositorio para obtener la lista de usuarios por nombre
+        return userRepository.findByUsername(name);
+    }
+}
 
 
-    // "Create a new user with a new account"
+
+   /* // Metodo para buscar un usuario por su ID
+    public User findById(String id) {
+        // Utiliza el metodo del repositorio para obtener el usuario por su ID
+        return userRepository.findById(Integer.valueOf(id)).orElse(null);
+    }
+
+    // Metodo para buscar una lista de usuarios por su nombre
+    public List<User> findByName(String name) {
+        // Utiliza el metodo del repositorio para obtener la lista de usuarios por nombre
+        return userRepository.findByUsername(name);
+    }
+}*/
+  /*  // "Create a new user with a new account"
     public ResponseNewUser createUser(RequestNewUser requestNewUser) {
         if (userRepository.findByEmail(requestNewUser.email()).isPresent()) {
             throw new ConflictException("Email already registered.");
@@ -71,5 +90,4 @@ public class UserServiceImpl implements IUserService {
         userRepository.save(user);
 
         return userMapper.responseGetUser(user);
-    }
-}
+    }*/

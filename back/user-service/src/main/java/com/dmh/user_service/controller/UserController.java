@@ -1,27 +1,37 @@
 package com.dmh.user_service.controller;
 
-import com.dmh.user_service.dto.RequestUpdateUser;
-import com.dmh.user_service.dto.ResponseGetUser;
-import com.dmh.user_service.dto.ResponseNewUser;
-import com.dmh.user_service.dto.RequestNewUser;
+
 import com.dmh.user_service.entity.User;
-import com.dmh.user_service.service.IUserService;
-import jakarta.validation.Valid;
+import com.dmh.user_service.service.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/")
 public class UserController {
 
     @Autowired
-    private IUserService userService;
+    private UserServiceImpl userService;
 
-    @PostMapping
+    // Endpoint para obtener un usuario por su ID
+    @GetMapping("user/{id}")
+    public User getById(@PathVariable String id) {
+        User user = userService.findById(id);
+        // Agregar log para verificar el usuario
+        System.out.println("User returned: " + user);
+        return user;
+    }
+
+    // Endpoint para obtener una lista de usuarios por su nombre
+    @GetMapping("users/{name}")
+    public List<User> getByName(@PathVariable String name) {
+        return userService.findByName(name);
+    }
+
+
+    /*@PostMapping
     public ResponseEntity<?> createUser(@Valid @RequestBody RequestNewUser requestNewUser) {
         ResponseNewUser responseNewUser = userService.createUser(requestNewUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseNewUser);
@@ -42,6 +52,8 @@ public class UserController {
         ResponseGetUser updatedUser = userService.updateUser(user_id, updateUserRequest);
         return ResponseEntity.ok(updatedUser);
     }
+
+    */
 }
 
 /*

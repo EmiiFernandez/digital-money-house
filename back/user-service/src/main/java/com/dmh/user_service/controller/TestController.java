@@ -1,4 +1,4 @@
-package com.dmh.user_service.controller;
+/*package com.dmh.user_service.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,3 +27,4 @@ public class TestController {
     }
 
 }
+*/

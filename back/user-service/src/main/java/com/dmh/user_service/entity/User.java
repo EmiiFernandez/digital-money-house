@@ -1,25 +1,30 @@
 package com.dmh.user_service.entity;
 
-import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
+//@Entity
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "users")
+//@Table(name = "users")
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Setter(AccessLevel.NONE)
-    private Integer user_id;
-    private Integer dni;
-    private String email;
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private String id;
     private String firstname;
     private String lastname;
-    private String password;
+    private String email;
+    private Integer dni;
     private String phone;
+
+    public User(String id, String firstname, String lastname, String email, Integer dni, String phone) {
+        this.id = id;
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.email = email;
+        this.phone = phone;
+        this.dni = dni;
+    }
 }

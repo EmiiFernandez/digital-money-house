@@ -5,6 +5,5 @@ public record RequestNewUser(
         String email,
         String firstname,
         String lastname,
-        String password,
         String phone) {
 }

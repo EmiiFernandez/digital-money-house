@@ -1,16 +1,13 @@
 package com.dmh.user_service.repository;
 
 import com.dmh.user_service.entity.User;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
-@Repository
-public interface IUserRepository extends JpaRepository<User, Integer> {
-    Optional<User> findById(Integer id);
+//@Repository
+public interface IUserRepository {
+    Optional<User> findById(String id);
 
-    Optional<User> findByEmail(String email);
-
-    Optional<User> findByDni (Integer dni);
+    List<User> findByUsername(String email);
 }

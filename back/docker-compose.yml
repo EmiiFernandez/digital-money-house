@@ -139,6 +139,8 @@ services:
     networks:
       - back_network
 
+
+
 volumes:
   mysql_user_data:
   mysql_account_data:

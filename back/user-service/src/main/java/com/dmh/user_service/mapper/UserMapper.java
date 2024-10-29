@@ -1,4 +1,4 @@
-package com.dmh.user_service.mapper;
+/*package com.dmh.user_service.mapper;
 
 import com.dmh.user_service.dto.RequestNewUser;
 import com.dmh.user_service.dto.RequestUpdateUser;
@@ -23,3 +23,4 @@ public interface UserMapper {
     void updateUser(RequestUpdateUser requestUpdateUser, @MappingTarget User user);
 
 }
+*/
