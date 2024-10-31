@@ -1,4 +1,4 @@
-package com.dmh.auth_service.security;
+/*package com.dmh.auth_service.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,3 +35,4 @@ public class WebSecurityConfig {
         return http.build();
     }
 }
+*/

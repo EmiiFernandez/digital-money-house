@@ -17,5 +17,6 @@ public class SecurityConfig {
                 .oauth2Login(withDefaults());
         return http.build();
     }
+
 }
 

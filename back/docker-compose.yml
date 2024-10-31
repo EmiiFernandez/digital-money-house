@@ -1,4 +1,25 @@
 services:
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    environment:
+      - STORAGE_TYPE=mem
+    ports:
+      - 9411:9411
+    networks:
+      - back_network
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - back_network
   #eureka-server:
   #container_name: eureka-server
   #build:
@@ -116,8 +137,7 @@ services:
   keycloak:
     container_name: keycloak
     image: quay.io/keycloak/keycloak:latest
-    command:
-      - start-dev
+    command: [ "start-dev", "--import-realm" ]
     restart: unless-stopped
     environment:
       KC_DB: postgres

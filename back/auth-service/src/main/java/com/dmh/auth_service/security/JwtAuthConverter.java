@@ -1,4 +1,4 @@
-package com.dmh.auth_service.security;
+/*package com.dmh.auth_service.security;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -21,6 +21,7 @@ import java.util.stream.Stream;
  Spring Security (AbstractAuthenticationToken).
  Este token se utiliza para autenticar y autorizar a los usuarios en la aplicacion.
  */
+/*
 @Component                                      //Convertimos el JWT en un Abstract....
 public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
@@ -86,3 +87,4 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
                 .collect(Collectors.toSet());
     }
 }
+*/
