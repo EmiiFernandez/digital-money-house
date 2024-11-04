@@ -1,4 +1,4 @@
-package com.dmh.user_service.client;
+package com.dmh.user_service.client.account;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

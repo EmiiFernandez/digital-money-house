@@ -1,7 +1,14 @@
 package com.dmh.auth_service.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 public record TokenRequest(
+        @NotBlank(message = "Email is required")
+        @Email(message = "Invalid email format")
         String email,
-        String password
+        @NotBlank(message = "Password is required")
+        String password,
+        String username
 ) {
 }

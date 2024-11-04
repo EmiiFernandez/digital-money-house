@@ -1,34 +1,28 @@
 package com.dmh.auth_service.config;
 
+import lombok.RequiredArgsConstructor;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 @Component
 @ConfigurationProperties(prefix = "keycloak")
+@RequiredArgsConstructor
 public class KeycloakClientConfiguration {
 
-    @Value("${keycloak.realm}")
-    private String realm;
-    @Value("${keycloak.serverUrl}")
-    private String serverurl;
-    @Value("${keycloak.clientId}")
-    private String clientid;
-    @Value("${keycloak.clientSecret}")
-    private String clientsecret;
+    private final KeycloakProperties keycloakProperties;
 
     @Bean
-    public Keycloak getInstance() {
+    public Keycloak initializeKeycloakAdmin() {
         return KeycloakBuilder.builder()
-                .serverUrl(serverurl)
-                .realm(realm)
-                .clientId(clientid)
-                .clientSecret(clientsecret)
+                .serverUrl(keycloakProperties.getAuthServerUrl())
+                .realm(keycloakProperties.getRealm())
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
+                .clientId(keycloakProperties.getClientId())
+                .clientSecret(keycloakProperties.getClientSecret())
                 .build();
     }
 }

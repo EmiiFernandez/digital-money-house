@@ -5,12 +5,15 @@ import com.dmh.account_service.client.UserClient;
 import com.dmh.account_service.dto.RequestAlias;
 import com.dmh.account_service.dto.ResponseAccount;
 import com.dmh.account_service.entity.Account;
+import com.dmh.account_service.exceptions.InternalServerErrorException;
 import com.dmh.account_service.exceptions.NotFoundException;
 import com.dmh.account_service.mapper.AccountMapper;
 import com.dmh.account_service.repository.AccountRepository;
 import com.dmh.account_service.service.AccountService;
 import feign.FeignException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -18,36 +21,55 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.SecureRandom;
-import java.util.Optional;
 import java.util.Random;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class AccountServiceImpl implements AccountService {
 
     private final IUserServiceClient userServiceClient;
-
     private final AccountRepository accountRepository;
-
     private final AccountMapper accountMapper;
-
     private static final SecureRandom secureRandom = new SecureRandom();
 
-
-    //Create account by register user
+    @Transactional
     public Account createAccount(Integer user_id) {
+        log.info("Creating account for user ID: {}", user_id);
+
+        // Verificar existencia del usuario
         try {
-            Optional<UserClient> user = userServiceClient.getUserById(user_id);
+            UserClient user = userServiceClient.getUserById(user_id)
+                    .orElseThrow(() -> new NotFoundException("User not found with ID: " + user_id));
+
+            log.info("User verified successfully. Creating account...");
+
+            // Crear y guardar la cuenta
+            Account account = Account.builder()
+                    .user_id(user_id)
+                    .alias(generateAlias())
+                    .cvu(generateCvu())
+                    .build();
+
+            Account savedAccount = accountRepository.save(account);
+            log.info("Account created successfully with ID: {}", savedAccount.getId());
+
+            return savedAccount;
+
+        } catch (FeignException.NotFound e) {
+            log.error("User not found in user-service: {}", user_id);
+            throw new NotFoundException("User not found with ID: " + user_id);
         } catch (FeignException e) {
-            throw new NotFoundException("Usuario no encontrado");
+            log.error("Error communicating with user-service: {}", e.getMessage());
+            throw new InternalServerErrorException("Error verifying user existence");
         }
+    }
 
-        Account newAccount = new Account();
-        newAccount.setUser_id(user_id);
-        newAccount.setAlias(generateAlias());
-        newAccount.setCvu(generateCvu());
 
-        return accountRepository.save(newAccount);
+    public void deleteAccountByUserId(Integer user_id) {
+        Account account = accountRepository.findAccountByUserId(user_id)
+                .orElseThrow(() -> new NotFoundException("Account not found for user ID: " + user_id));
+        accountRepository.delete(account);
     }
 
     //"Find account by user_id in the token." //FALTA AGREGAR EL TOKEN

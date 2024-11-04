@@ -1,46 +1,53 @@
-package com.dmh.user_service.entity;
+package com.dmh.auth_service.entity;
 
-import com.dmh.user_service.enums.UserStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
-@Setter
+@Table(name = "user_auth")
+@Data
+@Builder
 @NoArgsConstructor
-@Table(name = "users")
-public class User {
+@AllArgsConstructor
+public class UserAuth {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer user_id;
-    private String firstname;
-    private String lastname;
-    @Column(unique = true, nullable = false)
-    private String username;
+    private Integer id;
+
     @Column(unique = true, nullable = false)
     private String email;
+
+    @Column(nullable = false)
+    private String hashedPassword;
+
     @Column(unique = true, nullable = false)
-    private Integer dni;
-    private String phone;
-    private String password;
-    private String keycloakId;
-    @Enumerated
-    private UserStatus status;
+    private String username;
+
+    @Column(name = "is_active")
+    private boolean isActive;
+
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    private String keycloakId;
+
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        username = getEmail();
+        username = email;
     }
 
     @PreUpdate

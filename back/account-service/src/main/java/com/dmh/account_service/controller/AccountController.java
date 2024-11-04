@@ -51,4 +51,10 @@ public class AccountController {
         ResponseAccount updatedAlias = accountService.updateAliasAccount(account_id, requestAlias);
         return ResponseEntity.ok(updatedAlias);
     }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteAccount(@PathVariable Integer user_id) {
+        accountService.deleteAccountByUserId(user_id);
+        return ResponseEntity.noContent().build();
+    }
 }
