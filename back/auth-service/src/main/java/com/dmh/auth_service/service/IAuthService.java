@@ -8,7 +8,7 @@ public interface IAuthService {
     ResponseEntity<?> authenticateUser(TokenRequest tokenRequest);
     ResponseEntity<?> logoutUser(String token);
     ResponseEntity<?> validateToken(String token);
-    public void deleteUser(Integer user_id);
+    void deleteUser(String keycloakId);
     String getUserIdFromKeycloak(String email);
 }
 

@@ -46,14 +46,14 @@ public class AuthController {
         return authService.validateToken(token.replace("Bearer ", ""));
     }
 
-    @DeleteMapping("/users/{user_id}")
+    @DeleteMapping("/users/{keycloakId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable Integer user_id) {
+    public void deleteUser(@PathVariable String keycloakId) {
         try {
-            log.info("Deleting user credentials for userId: {}", user_id);
-            authService.deleteUser(user_id);
+            log.info("Deleting user credentials for userId: {}", keycloakId);
+            authService.deleteUser(keycloakId);
         } catch (Exception e) {
-            log.error("Error deleting user credentials for userId: {}", user_id, e);
+            log.error("Error deleting user credentials for userId: {}", keycloakId, e);
             throw new InternalServerErrorException("Failed to delete user credentials");
         }
     }
@@ -64,5 +64,6 @@ public class AuthController {
         String userId = authService.getUserIdFromKeycloak(email);
         return ResponseEntity.ok(userId);
     }
+
 }
 

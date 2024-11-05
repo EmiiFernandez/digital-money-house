@@ -33,36 +33,45 @@ public class AccountServiceImpl implements AccountService {
     private final AccountMapper accountMapper;
     private static final SecureRandom secureRandom = new SecureRandom();
 
-    @Transactional
     public Account createAccount(Integer user_id) {
         log.info("Creating account for user ID: {}", user_id);
 
-        // Verificar existencia del usuario
-        try {
-            UserClient user = userServiceClient.getUserById(user_id)
-                    .orElseThrow(() -> new NotFoundException("User not found with ID: " + user_id));
+        // Intenta recuperar el usuario con un mecanismo de reintento.
+        UserClient user = retryUserFetch(user_id);
 
-            log.info("User verified successfully. Creating account...");
+        log.info("User verified successfully. Creating account...");
 
-            // Crear y guardar la cuenta
-            Account account = Account.builder()
-                    .user_id(user_id)
-                    .alias(generateAlias())
-                    .cvu(generateCvu())
-                    .build();
+        // Procede a crear la cuenta tras confirmar la existencia del usuario.
+        Account account = Account.builder()
+                .user_id(user.getUser_id())
+                .alias(generateAlias())
+                .cvu(generateCvu())
+                .build();
 
-            Account savedAccount = accountRepository.save(account);
-            log.info("Account created successfully with ID: {}", savedAccount.getId());
+        Account savedAccount = accountRepository.save(account);
+        log.info("Account created successfully with ID: {}", savedAccount.getId());
 
-            return savedAccount;
+        return savedAccount;
+    }
 
-        } catch (FeignException.NotFound e) {
-            log.error("User not found in user-service: {}", user_id);
-            throw new NotFoundException("User not found with ID: " + user_id);
-        } catch (FeignException e) {
-            log.error("Error communicating with user-service: {}", e.getMessage());
-            throw new InternalServerErrorException("Error verifying user existence");
+    private UserClient retryUserFetch(Integer user_id) {
+        int retries = 3;
+        int delayMs = 500;
+
+        for (int i = 0; i < retries; i++) {
+            try {
+                return userServiceClient.getUserById(user_id)
+                        .orElseThrow(() -> new NotFoundException("User not found with ID: " + user_id));
+            } catch (FeignException.NotFound e) {
+                log.warn("User not found on attempt {} of {}", i + 1, retries);
+                try {
+                    Thread.sleep(delayMs); // Espera antes de reintentar.
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
+        throw new NotFoundException("User not found after retries with ID: " + user_id);
     }
 
 

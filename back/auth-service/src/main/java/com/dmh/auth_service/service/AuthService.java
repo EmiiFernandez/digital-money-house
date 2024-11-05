@@ -155,7 +155,6 @@ public class AuthService implements IAuthService {
             JWT jwt = JWTParser.parse(token);
             JWTClaimsSet claims = jwt.getJWTClaimsSet();
 
-            // Verificar expiración
             Date expirationTime = claims.getExpirationTime();
             if (expirationTime != null && expirationTime.before(new Date())) {
                 return ResponseEntity
@@ -163,7 +162,6 @@ public class AuthService implements IAuthService {
                         .body(new ConflictException("Token has expired"));
             }
 
-            // Verificar el issuer
             String issuer = claims.getIssuer();
             if (!issuer.equals(keycloakProperties.getServerUrl() + "/realms/" + keycloakProperties.getRealm())) {
                 return ResponseEntity
@@ -181,7 +179,6 @@ public class AuthService implements IAuthService {
         }
     }
 
-    // Métodos privados auxiliares
     private boolean userExists(UsersResource usersResource, String email) {
         return !usersResource.search(email).isEmpty();
     }
@@ -212,26 +209,21 @@ public class AuthService implements IAuthService {
         userResource.roles().realmLevel().add(Collections.singletonList(userRole));
     }
 
-    public void deleteUser(Integer user_id) {
+    public void deleteUser(String keycloakId) {
         try {
-            // Buscar usuario por ID en Keycloak
+            // Inicializa el cliente de Keycloak
             Keycloak keycloak = keycloakClientConfiguration.initializeKeycloakAdmin();
             RealmResource realmResource = keycloak.realm(keycloakProperties.getRealm());
             UsersResource usersResource = realmResource.users();
 
-            // Buscar por el ID del usuario en los atributos personalizados
-            List<UserRepresentation> users = usersResource.searchByAttributes("userId=" + user_id);
-
-            if (!users.isEmpty()) {
-                String keycloakUserId = users.get(0).getId();
-                usersResource.delete(keycloakUserId);
-                log.info("Successfully deleted user from Keycloak. UserId: {}", user_id);
-            } else {
-                log.warn("User not found in Keycloak. UserId: {}", user_id);
-                throw new NotFoundException("User not found in auth service");
-            }
+            // Intentar eliminar el usuario directamente usando su ID
+            usersResource.delete(keycloakId);
+            log.info("Successfully deleted user from Keycloak. UserId: {}", keycloakId);
+        } catch (NotFoundException e) {
+            log.warn("User not found in Keycloak during cleanup: {}", keycloakId);
+            throw new NotFoundException("User not found in auth service");
         } catch (Exception e) {
-            log.error("Error deleting user from Keycloak. UserId: {}", user_id);
+            log.error("Error deleting user from Keycloak. UserId: {}", keycloakId, e);
             throw new InternalServerErrorException("Failed to delete user from auth service");
         }
     }

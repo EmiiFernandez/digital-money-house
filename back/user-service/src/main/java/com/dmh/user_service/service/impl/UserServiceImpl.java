@@ -21,14 +21,11 @@ import feign.FeignException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 @RequiredArgsConstructor
 @Service
-@Transactional
 @Slf4j
 public class UserServiceImpl implements IUserService {
 
@@ -38,37 +35,85 @@ public class UserServiceImpl implements IUserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
-    @Transactional
+
     public ResponseNewUser createUser(RequestNewUser requestNewUser) {
         log.info("Starting user registration process for email: {}", requestNewUser.email());
-
-        // 1. Validaciones iniciales
-        validateUniqueConstraints(requestNewUser);
-
-        // 2. Crear usuario local
-        User user = createLocalUser(requestNewUser);
-        log.info("Local user created with ID: {}", user.getUser_id());
+        User user = null;
+        String keycloakUserId = null;
+        AccountClient account = null;
 
         try {
-            // 3. Registrar en auth-service
-            String keycloakUserId = registerInAuthService(requestNewUser);
-            user.setKeycloakId(keycloakUserId);
-            user.setStatus(UserStatus.ACTIVE);
-            user = userRepository.saveAndFlush(user); // Forzar la persistencia
-            log.info("User registered in auth service with ID: {}", keycloakUserId);
+            // 1. Validar restricciones únicas
+            validateUniqueConstraints(requestNewUser);
 
-            // 4. Crear cuenta con reintentos y manejo de transacciones
-            AccountClient account = createUserAccount(user);
+            // 2. Crear usuario local en estado PENDING
+            user = createLocalUser(requestNewUser);
+            log.info("Local user created with ID: {}", user.getUser_id());
+
+            // 3. Registrar en Keycloak
+            try {
+                keycloakUserId = registerInAuthService(requestNewUser);
+                user.setKeycloakId(keycloakUserId);
+                log.info("User registered in Keycloak with ID: {}", keycloakUserId);
+            } catch (Exception keycloakError) {
+                log.error("Error registering in Keycloak: {}", keycloakError.getMessage());
+                throw new InternalServerErrorException("Failed to register user in Keycloak: " + keycloakError.getMessage());
+            }
+
+            // 4. Actualizar usuario local con ID de Keycloak y estado ACTIVE
+            user.setStatus(UserStatus.ACTIVE);
+            user = userRepository.save(user);
+
+            // 5. Crear cuenta en account-service
+            try {
+                Thread.sleep(1000);
+                account = accountServiceClient.createAccount(user.getUser_id());
+                log.info("Account created successfully for user: {}", user.getUser_id());
+            } catch (Exception accountError) {
+                log.error("Error creating account for user {}: {}", user.getUser_id(), accountError.getMessage());
+                // Revertir el estado a PENDING si falla la creación de la cuenta
+                user.setStatus(UserStatus.PENDING);
+                userRepository.save(user);
+                throw new InternalServerErrorException("User created but account creation failed");
+            }
 
             return userMapper.responseNewUser(user, account.getId());
 
         } catch (Exception e) {
-            throw new InternalServerErrorException("Error al registrar el usuario: " + e.getMessage());
+            log.error("Error in user creation process: {}", e.getMessage());
+
+            // Limpieza en caso de error
+            if (keycloakUserId != null) {
+                try {
+                    cleanupAuthServiceUser(keycloakUserId);
+                } catch (Exception cleanupError) {
+                    log.error("Error cleaning up Keycloak user: {}", cleanupError.getMessage());
+                }
+            }
+
+            if (user != null && user.getUser_id() != null) {
+                try {
+                    userRepository.delete(user);
+                } catch (Exception deleteError) {
+                    log.error("Error cleaning up local user: {}", deleteError.getMessage());
+                }
+            }
+
+            if (e instanceof InternalServerErrorException) {
+                throw e;
+            }
+            throw new InternalServerErrorException("Failed to complete user registration: " + e.getMessage());
         }
     }
 
+    private User createLocalUser(RequestNewUser requestNewUser) {
+        User user = userMapper.requestNewUser(requestNewUser);
+        user.setPassword(passwordEncoder.encode(requestNewUser.password()));
+        user.setStatus(UserStatus.PENDING);
+        return userRepository.save(user);
+    }
 
-
+    // Registrar credenciales en Keycloak
     private String registerInAuthService(RequestNewUser requestNewUser) {
         try {
             TokenRequest tokenRequest = new TokenRequest(
@@ -77,94 +122,32 @@ public class UserServiceImpl implements IUserService {
                     requestNewUser.email()
             );
 
-            // Primero registramos el usuario
             authServiceClient.registerUserCredentials(tokenRequest);
 
-            // Luego obtenemos su ID
-            return authServiceClient.getKeycloakUserId(requestNewUser.email());
+            String keycloakId = authServiceClient.getKeycloakUserId(requestNewUser.email());
 
+            if (keycloakId == null || keycloakId.isEmpty()) {
+                throw new InternalServerErrorException("Error al obtener el id del usuario en Keycloak");
+            }
+
+            return keycloakId;
         } catch (FeignException e) {
             log.error("Error registering in auth service: {}", e.getMessage());
-            if (e.status() == 409) {
-                throw new ConflictException("User already exists in auth service");
-            }
-            throw new InternalServerErrorException("Failed to register user in auth service");
+            throw new InternalServerErrorException("Error en auth-service: " + e.getMessage());
         }
     }
 
-    private User createLocalUser(RequestNewUser requestNewUser) {
-        if (userRepository.existsByEmail(requestNewUser.email())) {
-            throw new ConflictException("Email already registered locally");
-        }
 
-        User user = userMapper.requestNewUser(requestNewUser);
-        user.setPassword(passwordEncoder.encode(requestNewUser.password()));
-        user.setStatus(UserStatus.ACTIVE);
-        return userRepository.save(user);
-    }
-
-
-    private AccountClient createUserAccount(User user) throws InterruptedException {
-        RetryTemplate retryTemplate = RetryTemplate.builder()
-                .maxAttempts(3)
-                .fixedBackoff(1000) // 1 segundo entre intentos
-                .retryOn(FeignException.class)
-                .build();
-
-        return retryTemplate.execute(context -> {
-            try {
-                // Asegurar que la transacción del usuario está confirmada
-                Thread.sleep(500); // Pequeña espera para asegurar consistencia
-                return accountServiceClient.createAccount(user.getUser_id());
-            } catch (FeignException e) {
-                log.error("Error creating account (attempt {}): {}", context.getRetryCount(), e.getMessage());
-                throw e;
-            }
-        });
-    }
-
-    private void handleRegistrationError(Exception e, String keycloakUserId) {
-        log.error("Error during user registration process", e);
-
-        // Si tenemos ID de Keycloak, intentar limpieza
-        if (keycloakUserId != null) {
-            try {
-                authServiceClient.deleteUser(keycloakUserId);
-            } catch (Exception authEx) {
-                log.error("Failed to cleanup auth service user: {}", authEx.getMessage());
-            }
-        }
-
-        // Determinar tipo de error y lanzar excepción apropiada
-        if (e instanceof FeignException) {
-            FeignException fe = (FeignException) e;
-            if (fe.status() == 404) {
-                throw new NotFoundException("Resource not found: " + fe.getMessage());
-            } else if (fe.status() == 409) {
-                throw new ConflictException("Resource already exists: " + fe.getMessage());
-            }
-        }
-    }
-
-    private void rollbackRegistration(String keycloakUserId, User user) {
-        if (user != null) {
-            try {
-                // Marcar usuario como FAILED en vez de eliminarlo
-                user.setStatus(UserStatus.FAILED);
-                userRepository.save(user);
-                log.info("User marked as FAILED: {}", user.getUser_id());
-            } catch (Exception e) {
-                log.error("Error marking user as FAILED: {}", e.getMessage());
-            }
-        }
-
-        if (user != null) {
-            try {
-                authServiceClient.deleteUser(keycloakUserId);
-                log.info("Keycloak user deleted: {}", keycloakUserId);
-            } catch (Exception e) {
-                log.error("Error deleting Keycloak user: {}", e.getMessage());
-            }
+    private void cleanupAuthServiceUser(String keycloakId) {
+        try {
+            log.debug("Attempting to delete user from Keycloak with ID: {}", keycloakId);
+            authServiceClient.deleteUser(keycloakId);
+            log.debug("Successfully deleted user from Keycloak");
+        } catch (FeignException.NotFound ex) {
+            log.warn("User not found in Keycloak during cleanup: {}", keycloakId);
+        } catch (FeignException ex) {
+            log.error("Unexpected error during Keycloak user cleanup: {}", ex.getMessage());
+            throw new ConflictException("Error deleting user from Keycloak");
         }
     }
 
@@ -196,19 +179,6 @@ public class UserServiceImpl implements IUserService {
         }
         if (userRepository.existsByDni(requestNewUser.dni())) {
             throw new BadRequestException("DNI already registered");
-        }
-    }
-
-    private void cleanupAuthServiceUser(String keycloakId) {
-        try {
-            log.debug("Attempting to delete user from auth service with ID: {}", keycloakId);
-            authServiceClient.deleteUser(keycloakId);
-            log.debug("Successfully deleted user from auth service");
-        } catch (FeignException.NotFound ex) {
-            log.warn("User not found in auth service during cleanup: {}", keycloakId);
-        } catch (FeignException ex) {
-            log.error("Unexpected error during auth service user cleanup: {}", ex.getMessage());
-            throw new ConflictException("Error al eliminar usuario del servicio de autenticación");
         }
     }
 

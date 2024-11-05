@@ -4,15 +4,15 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@FeignClient(name = "auth-service", url = "http://localhost:8083")
+@FeignClient(name = "auth-service", url = "http://localhost:8083/api/auth")
 public interface IAuthServiceClient {
-    @PostMapping("/api/auth")
+    @PostMapping()
     ResponseEntity<?> registerUserCredentials(@RequestBody TokenRequest tokenRequest);
-    @PostMapping("/api/auth/validate")
+    @PostMapping("/validate")
     ResponseEntity<Boolean> validateCredentials(@RequestBody TokenRequest tokenRequest);
-    @DeleteMapping("/users/{user_id}")
+    @DeleteMapping("/users/{keycloakId}")
     void deleteUser(@PathVariable String keycloakId);
-    @GetMapping("/api/auth/users/search")
+    @GetMapping("/users/search")
     String getKeycloakUserId(@RequestParam("email") String email);
 
 }
