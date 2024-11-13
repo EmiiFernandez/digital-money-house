@@ -17,7 +17,6 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
-import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -26,6 +25,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import com.dmh.auth_service.dto.TokenResponse;
+import com.dmh.auth_service.exceptions.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.*;
 
@@ -38,6 +41,7 @@ public class AuthService implements IAuthService {
 
     private final KeycloakProperties keycloakProperties;
     private final KeycloakClientConfiguration keycloakClientConfiguration;
+    private final KeycloakService keycloakService;
 
     @Override
     @Transactional
@@ -94,17 +98,16 @@ public class AuthService implements IAuthService {
         log.debug("Processing authentication for user: {}", tokenRequest.email());
 
         try {
-            Keycloak userKeycloak = keycloakClientConfiguration.initializeKeycloakAdmin();
+            // Usar KeycloakService en lugar del AdminClient
+            TokenResponse tokenResponse = keycloakService.getTokens(tokenRequest);
 
-            AccessTokenResponse tokenResponse = userKeycloak.tokenManager().getAccessToken();
+            if (tokenResponse == null || tokenResponse.token() == null) {
+                return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body(new ConflictException("Invalid credentials"));
+            }
 
-            Map<String, String> tokens = new HashMap<>();
-            tokens.put("access_token", tokenResponse.getToken());
-            tokens.put("refresh_token", tokenResponse.getRefreshToken());
-            tokens.put("expires_in", String.valueOf(tokenResponse.getExpiresIn()));
-
-            log.info("User authenticated successfully: {}", tokenRequest.email());
-            return ResponseEntity.ok(tokens);
+            return ResponseEntity.ok(tokenResponse);
 
         } catch (Exception ex) {
             log.error("Authentication failed: {}", ex.getMessage());
