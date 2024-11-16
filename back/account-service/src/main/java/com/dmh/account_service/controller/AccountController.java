@@ -10,6 +10,8 @@ import com.dmh.account_service.service.impl.AccountServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +31,7 @@ public class AccountController {
 
 
     @PostMapping()
+    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
     public Account createAccount(@RequestBody Integer user_id) {
         Optional<UserClient> user = userClient.getUserById(user_id);
         if (user.isEmpty()) {
