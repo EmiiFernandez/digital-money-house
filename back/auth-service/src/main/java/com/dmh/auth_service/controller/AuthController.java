@@ -1,6 +1,8 @@
 package com.dmh.auth_service.controller;
 
 import com.dmh.auth_service.dto.TokenRequest;
+import com.dmh.auth_service.dto.TokenResponse;
+import com.dmh.auth_service.exceptions.BadRequestException;
 import com.dmh.auth_service.exceptions.InternalServerErrorException;
 import com.dmh.auth_service.service.IAuthService;
 import jakarta.validation.Valid;
@@ -29,15 +31,18 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody TokenRequest tokenRequest) {
+    public TokenResponse authenticateUser(@Valid @RequestBody TokenRequest tokenRequest) {
         log.debug("Received authentication request for user: {}", tokenRequest.email());
-        return authService.authenticateUser(tokenRequest);
+        return authService.authenticateUser(tokenRequest.email(), tokenRequest.password());
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser(@RequestHeader("Authorization") String token) {
-        log.debug("Received logout request");
-        return authService.logoutUser(token.replace("Bearer ", ""));
+    public ResponseEntity<?> logoutUser(@RequestHeader(value = "Authorization", required = true) String token) {
+        log.info("Received logout request");
+        if (!token.startsWith("Bearer ")) {
+            throw new BadRequestException("Invalid authorization header format");
+        }
+        return authService.logoutUser(token.substring(7));
     }
 
     @PostMapping("/validate-token")

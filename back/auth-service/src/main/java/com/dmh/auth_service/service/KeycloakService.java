@@ -4,6 +4,7 @@ package com.dmh.auth_service.service;
 import com.dmh.auth_service.config.KeycloakProperties;
 import com.dmh.auth_service.dto.TokenRequest;
 import com.dmh.auth_service.dto.TokenResponse;
+import com.dmh.auth_service.exceptions.BadRequestException;
 import com.dmh.auth_service.exceptions.ConflictException;
 import com.dmh.auth_service.exceptions.InternalServerErrorException;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,9 @@ public class KeycloakService {
     private final KeycloakProperties keycloakProperties;
     private final RestTemplate restTemplate;
 
-    public TokenResponse getTokens(TokenRequest tokenRequest) {
+    public TokenResponse getTokens(String email, String password) {
+        log.debug("Requesting tokens for user: {}", email);
+
         try {
             String tokenUrl = keycloakProperties.getAuthServerUrl() +
                     "/realms/" + keycloakProperties.getRealm() +
@@ -42,8 +45,8 @@ public class KeycloakService {
             form.add(OAuth2Constants.GRANT_TYPE, OAuth2Constants.PASSWORD);
             form.add(OAuth2Constants.CLIENT_ID, keycloakProperties.getClientId());
             form.add(OAuth2Constants.CLIENT_SECRET, keycloakProperties.getClientSecret());
-            form.add("username", tokenRequest.email());
-            form.add("password", tokenRequest.password());
+            form.add("username",email);
+            form.add("password", password);
             form.add("scope", "openid offline_access"); // Add offline_access for refresh token
 
             HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(form, headers);
@@ -114,27 +117,61 @@ public class KeycloakService {
     }
 
     public void logout(String refreshToken) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            log.error("Logout failed: Refresh token is required");
+            throw new BadRequestException("Refresh token is required for logout");
+        }
+
         try {
             String logoutUrl = keycloakProperties.getAuthServerUrl() +
                     "/realms/" + keycloakProperties.getRealm() +
                     "/protocol/openid-connect/logout";
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            log.debug("Logout URL: {}", logoutUrl);
 
-            MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-            form.add(OAuth2Constants.CLIENT_ID, keycloakProperties.getClientId());
-            form.add(OAuth2Constants.CLIENT_SECRET, keycloakProperties.getClientSecret());
-            form.add(OAuth2Constants.REFRESH_TOKEN, refreshToken);
+            HttpEntity<MultiValueMap<String, String>> request = buildLogoutRequest(refreshToken);
 
-            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(form, headers);
-            restTemplate.postForEntity(logoutUrl, entity, String.class);
+            log.debug("Logout Request: Headers = {}, Body = {}",
+                    request.getHeaders(), request.getBody());
 
+            ResponseEntity<String> response = restTemplate.postForEntity(
+                    logoutUrl,
+                    request,
+                    String.class
+            );
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                log.error("Logout failed. HTTP Status: {}, Response: {}",
+                        response.getStatusCode(), response.getBody());
+                throw new InternalServerErrorException("Logout failed");
+            }
+
+            log.debug("Logout successful");
+
+        } catch (BadRequestException e) {
+            log.error("Client error during logout: {}" + e.getMessage());
+            throw new InternalServerErrorException("Logout failed: Client error");
+        } catch (InternalServerErrorException e) {
+            log.error("Keycloak server unreachable: {}" + e.getMessage());
+            throw new InternalServerErrorException("Logout service unavailable");
         } catch (Exception e) {
-            log.error("Error during logout in Keycloak", e);
-            throw new InternalServerErrorException("Logout failed");
+            log.error("Unexpected error during logout: {}", e.getMessage());
+            throw new InternalServerErrorException("Logout failed: Unexpected error");
         }
     }
+
+    private HttpEntity<MultiValueMap<String, String>> buildLogoutRequest(String refreshToken) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+        form.add(OAuth2Constants.CLIENT_ID, keycloakProperties.getClientId());
+        form.add(OAuth2Constants.CLIENT_SECRET, keycloakProperties.getClientSecret());
+        form.add(OAuth2Constants.REFRESH_TOKEN, refreshToken);
+
+        return new HttpEntity<>(form, headers);
+    }
+
 
     private Set<String> extractRolesFromToken(String tokenString) {
         try {
