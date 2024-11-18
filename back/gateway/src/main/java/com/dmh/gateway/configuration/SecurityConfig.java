@@ -32,7 +32,9 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(HttpMethod.POST,"/api/users/**").permitAll()
-                        .pathMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/auth").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
                         .pathMatchers("/actuator/**").permitAll()
                         .anyExchange().authenticated()
                 )

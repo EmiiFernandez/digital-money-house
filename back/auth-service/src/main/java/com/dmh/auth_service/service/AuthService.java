@@ -104,35 +104,10 @@ public class AuthService implements IAuthService {
 
 
     @Override
-    public ResponseEntity<?> logoutUser(String token) {
-        if (token == null || token.isEmpty()) {
-            throw new BadRequestException("Token is required for logout");
-        }
+    public void logoutUser(String token) {
+        log.debug("Calling Keycloak logout service");
 
-        log.debug("Processing logout request");
-        try {
-            String refreshToken = extractRefreshToken(token);
-            keycloakService.logout(refreshToken);
-            return ResponseEntity.ok(Map.of("message", "Logout successful"));
-        } catch (Exception e) {
-            log.error("Logout failed: {}", e.getMessage());
-            throw new InternalServerErrorException("Logout failed");
-        }
-    }
-
-    private String extractRefreshToken(String token) {
-        try {
-            JWT jwt = JWTParser.parse(token);
-            JWTClaimsSet claims = jwt.getJWTClaimsSet();
-            String refreshToken = claims.getStringClaim("refresh_token");
-            if (refreshToken == null) {
-                throw new BadRequestException("Invalid token format: missing refresh token");
-            }
-            return refreshToken;
-        } catch (Exception e) {
-            log.error("Failed to extract refresh token: {}", e.getMessage());
-            throw new BadRequestException("Invalid token format");
-        }
+        keycloakService.logoutUser(token); // Usamos siempre el mismo token (Bearer o refresh)
     }
 
     @Override

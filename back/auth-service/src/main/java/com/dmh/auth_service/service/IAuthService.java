@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 public interface IAuthService {
     ResponseEntity<?> registerUserCredentials(TokenRequest tokenRequest);
     TokenResponse authenticateUser(String email, String password);
-    ResponseEntity<?> logoutUser(String token);
+    void logoutUser(String token);
     ResponseEntity<?> validateToken(String token);
     void deleteUser(String keycloakId);
     String getUserIdFromKeycloak(String email);

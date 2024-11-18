@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -37,12 +38,15 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser(@RequestHeader(value = "Authorization", required = true) String token) {
-        log.info("Received logout request");
-        if (!token.startsWith("Bearer ")) {
-            throw new BadRequestException("Invalid authorization header format");
-        }
-        return authService.logoutUser(token.substring(7));
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authorizationHeader) {
+        String accessToken = authorizationHeader.replace("Bearer ", "");
+
+        log.debug("Logout request received");
+        log.debug("Authorization header: {}", accessToken);
+
+       authService.logoutUser(accessToken);
+
+        return ResponseEntity.ok("Logout successful");
     }
 
     @PostMapping("/validate-token")

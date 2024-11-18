@@ -4,9 +4,8 @@ package com.dmh.auth_service.service;
 import com.dmh.auth_service.config.KeycloakProperties;
 import com.dmh.auth_service.dto.TokenRequest;
 import com.dmh.auth_service.dto.TokenResponse;
-import com.dmh.auth_service.exceptions.BadRequestException;
-import com.dmh.auth_service.exceptions.ConflictException;
-import com.dmh.auth_service.exceptions.InternalServerErrorException;
+import com.dmh.auth_service.exceptions.*;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.OAuth2Constants;
@@ -17,7 +16,11 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -116,61 +119,36 @@ public class KeycloakService {
         }
     }
 
-    public void logout(String refreshToken) {
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            log.error("Logout failed: Refresh token is required");
-            throw new BadRequestException("Refresh token is required for logout");
-        }
 
-        try {
+
+    public void logoutUser(String accessToken) {
+        log.debug("Initiating logout for user with refresh token");
+
+            // Construir URL del endpoint de logout
             String logoutUrl = keycloakProperties.getAuthServerUrl() +
                     "/realms/" + keycloakProperties.getRealm() +
                     "/protocol/openid-connect/logout";
 
-            log.debug("Logout URL: {}", logoutUrl);
+            // Configurar headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            headers.setBearerAuth(accessToken);
 
-            HttpEntity<MultiValueMap<String, String>> request = buildLogoutRequest(refreshToken);
+            HttpEntity<?> entity = new HttpEntity<>(headers);
 
-            log.debug("Logout Request: Headers = {}, Body = {}",
-                    request.getHeaders(), request.getBody());
-
-            ResponseEntity<String> response = restTemplate.postForEntity(
+            ResponseEntity<String> response = restTemplate.exchange(
                     logoutUrl,
-                    request,
+                    HttpMethod.POST,
+                    entity,
                     String.class
             );
 
             if (!response.getStatusCode().is2xxSuccessful()) {
-                log.error("Logout failed. HTTP Status: {}, Response: {}",
-                        response.getStatusCode(), response.getBody());
-                throw new InternalServerErrorException("Logout failed");
+                throw new RuntimeException("Logout failed with status code: " + response.getStatusCode());
             }
-
-            log.debug("Logout successful");
-
-        } catch (BadRequestException e) {
-            log.error("Client error during logout: {}" + e.getMessage());
-            throw new InternalServerErrorException("Logout failed: Client error");
-        } catch (InternalServerErrorException e) {
-            log.error("Keycloak server unreachable: {}" + e.getMessage());
-            throw new InternalServerErrorException("Logout service unavailable");
-        } catch (Exception e) {
-            log.error("Unexpected error during logout: {}", e.getMessage());
-            throw new InternalServerErrorException("Logout failed: Unexpected error");
         }
-    }
 
-    private HttpEntity<MultiValueMap<String, String>> buildLogoutRequest(String refreshToken) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-        form.add(OAuth2Constants.CLIENT_ID, keycloakProperties.getClientId());
-        form.add(OAuth2Constants.CLIENT_SECRET, keycloakProperties.getClientSecret());
-        form.add(OAuth2Constants.REFRESH_TOKEN, refreshToken);
-
-        return new HttpEntity<>(form, headers);
-    }
 
 
     private Set<String> extractRolesFromToken(String tokenString) {
