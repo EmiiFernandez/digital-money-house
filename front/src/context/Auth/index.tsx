@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import {createContext, ReactNode, SetStateAction } from 'react';
-import Keycloak from 'keycloak-js';
-import { ReactKeycloakProvider} from '@react-keycloak/web';
+import React, { createContext, useState, SetStateAction } from 'react';
+import { useLocalStorage } from '../../hooks';
 
 export const AuthContext = createContext<{
   isAuthenticated: boolean;
@@ -13,22 +12,22 @@ export const AuthContext = createContext<{
   logout: () => {},
 });
 
-const AuthProvider = ({ children }: { children: ReactNode }) => {
+const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [token, setToken] = useLocalStorage('token');
+  const [isAuthenticated, setIsAuthenticated] = useState(!!token);
 
-  const client = new Keycloak({
-    url: 'http://localhost:9092', // Asegúrate que el path /auth esté incluido
-    realm: 'dmh-realm-dev',
-    clientId: 'auth-client-dev',
-  });
+  const logout = () => {
+    setIsAuthenticated(false);
+    setToken(null);
+  };
 
   return (
-    <ReactKeycloakProvider
-      authClient={client}
-      initOptions={{ onLoad: 'login-required' }} // Este parámetro forza el login en la carga de la app
+    <AuthContext.Provider
+      value={{ isAuthenticated, setIsAuthenticated, logout }}
     >
       {children}
-    </ReactKeycloakProvider>
+    </AuthContext.Provider>
   );
 };
 
-export default AuthProvider;  
+export default AuthProvider;

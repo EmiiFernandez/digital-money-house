@@ -6,17 +6,15 @@ import { useAuth } from '../../hooks/useAuth';
 export const PrivateRoutes = () => {
   const [token] = useLocalStorage('token');
   const { isAuthenticated, setIsAuthenticated } = useAuth();
-
-  React.useEffect(() => {
-    if (token) {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (token) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
     }
-  }, [token, setIsAuthenticated]);
+  }, [isAuthenticated, setIsAuthenticated, token]);
 
-  // Renderiza el contenido o redirige basado en la autenticación
-  return isAuthenticated ? <Outlet /> : <Navigate to="/" />;
-
-  
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 };

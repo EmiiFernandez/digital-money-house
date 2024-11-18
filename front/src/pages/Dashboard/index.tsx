@@ -23,7 +23,6 @@ import { currencies, UNAUTHORIZED } from '../../constants/';
 import { useUserInfo } from '../../hooks/useUserInfo';
 import { Transaction, UserAccount } from '../../types/';
 import { useAuth, useLocalStorage } from '../../hooks';
-import { useCookie } from '../../hooks/useCookie';
 
 const numberOfActivities = 5;
 const duration = 2000;
@@ -33,8 +32,7 @@ const Dashboard = () => {
   const { locales, currency } = Argentina;
   const navigate = useNavigate();
   const { user } = useUserInfo();
-//  const [token] = useLocalStorage('token');
-  const [token] = useCookie('KEYCLOAK_IDENTITY');
+  const [token] = useLocalStorage('token');
   const [searchParams] = useSearchParams();
   const isSuccess = !!searchParams.get('success');
   const [userActivities, setUserActivities] = useState<IRecord[]>([]);
@@ -43,11 +41,6 @@ const Dashboard = () => {
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { logout } = useAuth();
-
-  useEffect(() => {
-    console.log('User:', user);
-    console.log('Token:', token);
-  }, [user, token]);
 
   useEffect(() => {
     if (user && user.id) {
@@ -71,13 +64,15 @@ const Dashboard = () => {
     }
   }, [logout, token, user]);
 
- useEffect(() => {
-    if (user?.id) {
+  useEffect(() => {
+    if ((user && user.id) || (user && user.id && isSuccess)) {
       getAccount(user.id, token)
         .then((account) => {
-          setUserAccount({
-            balance: account.balance || 0,
-          });
+          if ((account as UserAccount).balance) {
+            setUserAccount({
+              balance: account.balance || 0,
+            });
+          }
           if (isSuccess) {
             setTimeout(() => navigate(ROUTES.HOME), duration);
           }
@@ -86,10 +81,9 @@ const Dashboard = () => {
           if (error.status === UNAUTHORIZED) {
             logout();
           }
-        })
-        .finally(() => setIsLoading(false));
+        });
     }
-  }, [user, token, navigate, isSuccess, logout]);
+  }, [isSuccess, logout, navigate, token, user]);
 
   return (
     <div className="tw-w-full">

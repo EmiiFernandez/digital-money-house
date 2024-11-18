@@ -25,7 +25,7 @@
 }
 
 /*
-! tailwindcss v3.4.10 | MIT License | https://tailwindcss.com
+! tailwindcss v3.1.8 | MIT License | https://tailwindcss.com
 */
 
 /*
@@ -56,13 +56,9 @@
 2. Prevent adjustments of font size after orientation changes in iOS.
 3. Use a more readable tab size.
 4. Use the user's configured `sans` font-family by default.
-5. Use the user's configured `sans` font-feature-settings by default.
-6. Use the user's configured `sans` font-variation-settings by default.
-7. Disable tap highlights on iOS
 */
 
-html,
-:host {
+html {
   line-height: 1.5;
   /* 1 */
   -webkit-text-size-adjust: 100%;
@@ -70,14 +66,8 @@ html,
   /* 3 */
   tab-size: 4;
   /* 3 */
-  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   /* 4 */
-  font-feature-settings: normal;
-  /* 5 */
-  font-variation-settings: normal;
-  /* 6 */
-  -webkit-tap-highlight-color: transparent;
-  /* 7 */
 }
 
 /*
@@ -112,8 +102,7 @@ Add the correct text decoration in Chrome, Edge, and Safari.
 */
 
 abbr:where([title]) {
-  -webkit-text-decoration: underline dotted;
-          text-decoration: underline dotted;
+  text-decoration: underline dotted;
 }
 
 /*
@@ -149,10 +138,8 @@ strong {
 }
 
 /*
-1. Use the user's configured `mono` font-family by default.
-2. Use the user's configured `mono` font-feature-settings by default.
-3. Use the user's configured `mono` font-variation-settings by default.
-4. Correct the odd `em` font sizing in all browsers.
+1. Use the user's configured `mono` font family by default.
+2. Correct the odd `em` font sizing in all browsers.
 */
 
 code,
@@ -161,12 +148,8 @@ samp,
 pre {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   /* 1 */
-  font-feature-settings: normal;
-  /* 2 */
-  font-variation-settings: normal;
-  /* 3 */
   font-size: 1em;
-  /* 4 */
+  /* 2 */
 }
 
 /*
@@ -225,17 +208,11 @@ select,
 textarea {
   font-family: inherit;
   /* 1 */
-  font-feature-settings: inherit;
-  /* 1 */
-  font-variation-settings: inherit;
-  /* 1 */
   font-size: 100%;
   /* 1 */
   font-weight: inherit;
   /* 1 */
   line-height: inherit;
-  /* 1 */
-  letter-spacing: inherit;
   /* 1 */
   color: inherit;
   /* 1 */
@@ -260,9 +237,9 @@ select {
 */
 
 button,
-input:where([type='button']),
-input:where([type='reset']),
-input:where([type='submit']) {
+[type='button'],
+[type='reset'],
+[type='submit'] {
   -webkit-appearance: button;
   /* 1 */
   background-color: transparent;
@@ -382,14 +359,6 @@ menu {
 }
 
 /*
-Reset default styling for dialogs.
-*/
-
-dialog {
-  padding: 0;
-}
-
-/*
 Prevent resizing textareas horizontally by default.
 */
 
@@ -457,12 +426,6 @@ video {
   height: auto;
 }
 
-/* Make elements with the HTML hidden attribute stay hidden by default */
-
-[hidden] {
-  display: none;
-}
-
 body {
   background: var(--background);
   color: var(--neutral-gray-100);
@@ -515,9 +478,6 @@ label {
   --tw-pan-y:  ;
   --tw-pinch-zoom:  ;
   --tw-scroll-snap-strictness: proximity;
-  --tw-gradient-from-position:  ;
-  --tw-gradient-via-position:  ;
-  --tw-gradient-to-position:  ;
   --tw-ordinal:  ;
   --tw-slashed-zero:  ;
   --tw-numeric-figure:  ;
@@ -549,10 +509,6 @@ label {
   --tw-backdrop-opacity:  ;
   --tw-backdrop-saturate:  ;
   --tw-backdrop-sepia:  ;
-  --tw-contain-size:  ;
-  --tw-contain-layout:  ;
-  --tw-contain-paint:  ;
-  --tw-contain-style:  ;
 }
 
 ::backdrop {
@@ -569,9 +525,6 @@ label {
   --tw-pan-y:  ;
   --tw-pinch-zoom:  ;
   --tw-scroll-snap-strictness: proximity;
-  --tw-gradient-from-position:  ;
-  --tw-gradient-via-position:  ;
-  --tw-gradient-to-position:  ;
   --tw-ordinal:  ;
   --tw-slashed-zero:  ;
   --tw-numeric-figure:  ;
@@ -603,10 +556,6 @@ label {
   --tw-backdrop-opacity:  ;
   --tw-backdrop-saturate:  ;
   --tw-backdrop-sepia:  ;
-  --tw-contain-size:  ;
-  --tw-contain-layout:  ;
-  --tw-contain-paint:  ;
-  --tw-contain-style:  ;
 }
 
 #root .tw-fixed {
@@ -625,20 +574,16 @@ label {
   position: sticky;
 }
 
-#root .tw--top-px {
-  top: -1px;
-}
-
 #root .tw-bottom-0 {
   bottom: 0px;
 }
 
-#root .tw-bottom-full {
-  bottom: 100%;
-}
-
 #root .tw-top-16 {
   top: 4rem;
+}
+
+#root .tw-bottom-full {
+  bottom: 100%;
 }
 
 #root .tw-top-full {
@@ -647,6 +592,10 @@ label {
 
 #root .tw-top-px {
   top: 1px;
+}
+
+#root .tw--top-px {
+  top: -1px;
 }
 
 #root .tw-z-50 {
@@ -658,44 +607,12 @@ label {
   margin-right: auto;
 }
 
-#root .tw-mb-0\.5 {
-  margin-bottom: 0.125rem;
-}
-
-#root .tw-mb-2 {
-  margin-bottom: 0.5rem;
-}
-
-#root .tw-mb-4 {
-  margin-bottom: 1rem;
-}
-
-#root .tw-mb-5 {
-  margin-bottom: 1.25rem;
-}
-
-#root .tw-mb-8 {
-  margin-bottom: 2rem;
-}
-
-#root .tw-ml-4 {
-  margin-left: 1rem;
-}
-
-#root .tw-mt-10 {
-  margin-top: 2.5rem;
-}
-
 #root .tw-mt-12 {
   margin-top: 3rem;
 }
 
-#root .tw-mt-2 {
-  margin-top: 0.5rem;
-}
-
-#root .tw-mt-4 {
-  margin-top: 1rem;
+#root .tw-mb-8 {
+  margin-bottom: 2rem;
 }
 
 #root .tw-mt-6 {
@@ -704,6 +621,42 @@ label {
 
 #root .tw-mt-8 {
   margin-top: 2rem;
+}
+
+#root .tw-mb-0\.5 {
+  margin-bottom: 0.125rem;
+}
+
+#root .tw-mb-0 {
+  margin-bottom: 0px;
+}
+
+#root .tw-mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+#root .tw-mt-2 {
+  margin-top: 0.5rem;
+}
+
+#root .tw-mb-4 {
+  margin-bottom: 1rem;
+}
+
+#root .tw-mt-4 {
+  margin-top: 1rem;
+}
+
+#root .tw-mb-5 {
+  margin-bottom: 1.25rem;
+}
+
+#root .tw-mt-10 {
+  margin-top: 2.5rem;
+}
+
+#root .tw-ml-4 {
+  margin-left: 1rem;
 }
 
 #root .tw-inline-block {
@@ -722,6 +675,14 @@ label {
   display: none;
 }
 
+#root .tw-h-full {
+  height: 100%;
+}
+
+#root .tw-h-16 {
+  height: 4rem;
+}
+
 #root .tw-h-12 {
   height: 3rem;
 }
@@ -730,12 +691,8 @@ label {
   height: 3.5rem;
 }
 
-#root .tw-h-16 {
-  height: 4rem;
-}
-
-#root .tw-h-full {
-  height: 100%;
+#root .tw-w-full {
+  width: 100%;
 }
 
 #root .tw-w-64 {
@@ -746,20 +703,16 @@ label {
   width: 20rem;
 }
 
-#root .tw-w-full {
-  width: 100%;
-}
-
 #root .tw-max-w-2xl {
   max-width: 42rem;
 }
 
-#root .tw-max-w-3xl {
-  max-width: 48rem;
-}
-
 #root .tw-max-w-5xl {
   max-width: 64rem;
+}
+
+#root .tw-max-w-3xl {
+  max-width: 48rem;
 }
 
 #root .tw-flex-1 {
@@ -819,20 +772,32 @@ label {
   justify-content: space-evenly;
 }
 
-#root .tw-gap-2 {
-  gap: 0.5rem;
-}
-
 #root .tw-gap-4 {
   gap: 1rem;
 }
 
-#root .tw-gap-x-16 {
-  column-gap: 4rem;
+#root .tw-gap-2 {
+  gap: 0.5rem;
+}
+
+#root .tw-gap-y-4 {
+  row-gap: 1rem;
 }
 
 #root .tw-gap-x-2 {
   column-gap: 0.5rem;
+}
+
+#root .tw-gap-y-6 {
+  row-gap: 1.5rem;
+}
+
+#root .tw-gap-y-2 {
+  row-gap: 0.5rem;
+}
+
+#root .tw-gap-y-8 {
+  row-gap: 2rem;
 }
 
 #root .tw-gap-x-4 {
@@ -843,28 +808,12 @@ label {
   row-gap: 3rem;
 }
 
-#root .tw-gap-y-2 {
-  row-gap: 0.5rem;
-}
-
-#root .tw-gap-y-4 {
-  row-gap: 1rem;
-}
-
-#root .tw-gap-y-6 {
-  row-gap: 1.5rem;
-}
-
-#root .tw-gap-y-8 {
-  row-gap: 2rem;
+#root .tw-gap-x-16 {
+  column-gap: 4rem;
 }
 
 #root .tw-overflow-auto {
   overflow: auto;
-}
-
-#root .tw-rounded {
-  border-radius: 0.25rem;
 }
 
 #root .tw-rounded-lg {
@@ -875,8 +824,16 @@ label {
   border-radius: 0.75rem;
 }
 
+#root .tw-rounded {
+  border-radius: 0.25rem;
+}
+
 #root .tw-border-2 {
   border-width: 2px;
+}
+
+#root .tw-border-t {
+  border-top-width: 1px;
 }
 
 #root .tw-border-b {
@@ -885,10 +842,6 @@ label {
 
 #root .tw-border-r {
   border-right-width: 1px;
-}
-
-#root .tw-border-t {
-  border-top-width: 1px;
 }
 
 #root .tw-border-neutral-blue-100 {
@@ -903,10 +856,6 @@ label {
   background-color: var(--background);
 }
 
-#root .tw-bg-error {
-  background-color: var(--error);
-}
-
 #root .tw-bg-primary {
   background-color: var(--primary);
 }
@@ -915,16 +864,20 @@ label {
   background-color: var(--success);
 }
 
+#root .tw-bg-error {
+  background-color: var(--error);
+}
+
 #root .tw-fill-neutral-gray-500 {
   fill: var(--neutral-gray-500);
 }
 
-#root .tw-p-0 {
-  padding: 0px;
-}
-
 #root .tw-p-10 {
   padding: 2.5rem;
+}
+
+#root .tw-p-0 {
+  padding: 0px;
 }
 
 #root .tw-p-2 {
@@ -935,14 +888,19 @@ label {
   padding: 1rem;
 }
 
+#root .tw-px-10 {
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+}
+
 #root .tw-px-0 {
   padding-left: 0px;
   padding-right: 0px;
 }
 
-#root .tw-px-10 {
-  padding-left: 2.5rem;
-  padding-right: 2.5rem;
+#root .tw-py-5 {
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
 }
 
 #root .tw-px-4 {
@@ -955,17 +913,12 @@ label {
   padding-bottom: 0.5rem;
 }
 
-#root .tw-py-5 {
-  padding-top: 1.25rem;
-  padding-bottom: 1.25rem;
+#root .tw-pt-4 {
+  padding-top: 1rem;
 }
 
 #root .tw-pl-8 {
   padding-left: 2rem;
-}
-
-#root .tw-pt-4 {
-  padding-top: 1rem;
 }
 
 #root .tw-text-left {
@@ -988,28 +941,28 @@ label {
   font-weight: 700;
 }
 
-#root .\!tw-text-neutral-gray-100 {
-  color: var(--neutral-gray-100) !important;
-}
-
-#root .\!tw-text-primary {
-  color: var(--primary) !important;
+#root .tw-text-neutral-gray-100 {
+  color: var(--neutral-gray-100);
 }
 
 #root .tw-text-error {
   color: var(--error);
 }
 
-#root .tw-text-neutral-gray-100 {
-  color: var(--neutral-gray-100);
-}
-
 #root .tw-text-neutral-gray-300 {
   color: var(--neutral-gray-300);
 }
 
+#root .\!tw-text-neutral-gray-100 {
+  color: var(--neutral-gray-100) !important;
+}
+
 #root .tw-text-primary {
   color: var(--primary);
+}
+
+#root .\!tw-text-primary {
+  color: var(--primary) !important;
 }
 
 #root .tw-text-white {
@@ -1029,7 +982,7 @@ label {
 #root .tw-backdrop-blur {
   --tw-backdrop-blur: blur(8px);
   -webkit-backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
-  backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+          backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
 }
 
 #root .tw-transition {

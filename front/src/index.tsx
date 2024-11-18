@@ -1,7 +1,7 @@
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { BrowserRouter as Router } from 'react-router-dom';
 import UserInfoProvider from './context/User';
 import AuthProvider from './context/Auth';
 const darkTheme = createTheme({
@@ -14,14 +14,13 @@ const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
- 
+  <React.StrictMode>
     <AuthProvider>
       <UserInfoProvider>
         <ThemeProvider theme={darkTheme}>
-          <Router>
-            <App />
-          </Router>
+          <App />
         </ThemeProvider>
       </UserInfoProvider>
     </AuthProvider>
+  </React.StrictMode>
 );

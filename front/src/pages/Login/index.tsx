@@ -13,6 +13,7 @@ import {
   valuesHaveErrors,
   emailValidationConfig,
   passwordValidationConfig,
+  handleChange,
   login,
 } from '../../utils/';
 import { ErrorMessage, Errors } from '../../components/ErrorMessage';
@@ -42,6 +43,7 @@ const Login = () => {
     criteriaMode: 'all',
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [token, setToken] = useLocalStorage('token');
   const [values, setValues] = useState<LoginState>({
     email: '',
@@ -55,7 +57,6 @@ const Login = () => {
 
   const isEmpty = isValueEmpty(values);
   const hasErrors = useMemo(() => valuesHaveErrors(errors), [errors]);
-
 
   const handleClickShowPassword = () => {
     setValues({
@@ -73,12 +74,7 @@ const Login = () => {
   const onChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     maxLength?: number
-  ) => {
-    setValues((prevValues) => ({
-      ...prevValues,
-      [event.target.name]: event.target.value,
-    }));
-  };
+  ) => handleChange<LoginState>(event, setValues, maxLength);
 
   const onSubmit: SubmitHandler<LoginInputs> = ({ email, password }) => {
     setIsSubmiting(true);
@@ -88,13 +84,14 @@ const Login = () => {
         setTimeout(() => {
           setIsSubmiting(false);
           setIsAuthenticated(true);
-        }, messageDuration);
+        });
       })
       .catch((error) => {
+        // eslint-disable-next-line no-console
         console.log(error);
         setIsSubmiting(false);
+        setMessage(ERROR_MESSAGES.NOT_FOUND_USER);
         if (error.status === BAD_REQUEST) {
-          setMessage(ERROR_MESSAGES.NOT_FOUND_USER);
           setIsError(true);
         }
       });
