@@ -62,7 +62,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/api/users/register").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/auth").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/ping").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/ping").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
                         .pathMatchers("/actuator/**").permitAll()
                         .anyExchange().authenticated()
