@@ -34,13 +34,11 @@ public class KeycloakService {
     private final RestTemplate restTemplate;
 
     public TokenResponse getTokens(String email, String password) {
-        log.debug("Requesting tokens for user: {}", email);
+        String tokenUrl = keycloakProperties.getAuthServerUrl() +
+                "/realms/" + keycloakProperties.getRealm() +
+                "/protocol/openid-connect/token";
 
         try {
-            String tokenUrl = keycloakProperties.getAuthServerUrl() +
-                    "/realms/" + keycloakProperties.getRealm() +
-                    "/protocol/openid-connect/token";
-
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -48,34 +46,40 @@ public class KeycloakService {
             form.add(OAuth2Constants.GRANT_TYPE, OAuth2Constants.PASSWORD);
             form.add(OAuth2Constants.CLIENT_ID, keycloakProperties.getClientId());
             form.add(OAuth2Constants.CLIENT_SECRET, keycloakProperties.getClientSecret());
-            form.add("username",email);
+            form.add("username", email);
             form.add("password", password);
-            form.add("scope", "openid offline_access"); // Add offline_access for refresh token
-
-            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(form, headers);
+            form.add("scope", "openid profile email");
 
             ResponseEntity<Map> response = restTemplate.postForEntity(
                     tokenUrl,
-                    entity,
+                    new HttpEntity<>(form, headers),
                     Map.class
             );
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 Map<String, Object> tokenData = response.getBody();
-                return TokenResponse.builder()
-                        .token((String) tokenData.get("access_token"))
-                        .refreshToken((String) tokenData.get("refresh_token"))
-                        .expiresIn(((Number) tokenData.get("expires_in")).longValue())
-                        .tokenType((String) tokenData.get("token_type"))
-                        .roles(extractRolesFromToken((String) tokenData.get("access_token")))
-                        .build();
+                return createTokenResponse(tokenData);
             }
 
-            throw new ConflictException("Failed to obtain tokens");
+            throw new UnauthorizedException("Authentication failed");
+        } catch (HttpClientErrorException.Unauthorized e) {
+            log.error("Invalid credentials for user: {}", email);
+            throw new UnauthorizedException("Invalid username or password");
         } catch (Exception e) {
-            log.error("Error getting tokens from Keycloak", e);
-            throw new InternalServerErrorException("Authentication failed");
+            log.error("Token retrieval error", e);
+            throw new InternalServerErrorException("Authentication service error");
         }
+
+    }
+
+    private TokenResponse createTokenResponse(Map<String, Object> tokenData) {
+        return TokenResponse.builder()
+                .token((String) tokenData.get("access_token"))
+                .refreshToken((String) tokenData.get("refresh_token"))
+                .expiresIn(((Number) tokenData.getOrDefault("expires_in", 3600)).longValue())
+                .tokenType((String) tokenData.getOrDefault("token_type", "Bearer"))
+                .roles(extractRolesFromToken((String) tokenData.get("access_token")))
+                .build();
     }
 
     public TokenResponse refreshToken(String refreshToken) {

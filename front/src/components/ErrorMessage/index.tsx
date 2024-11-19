@@ -10,7 +10,7 @@ export interface ErrorMessageProps {
 }
 
 export const ErrorMessage = ({ errors }: ErrorMessageProps) => {
-  const { types } = errors;
+  const types = errors?.types || {};
   const messages = Object.keys(types).map((key) => types[key]);
 
   return (

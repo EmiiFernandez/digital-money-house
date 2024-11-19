@@ -102,7 +102,7 @@ const Register = () => {
     maxLength?: number
   ) => handleChange<RegisterState>(event, setValues, maxLength);
 
-  const onSubmit: SubmitHandler<RegisterInputs> = ({
+  const onSubmit: SubmitHandler<RegisterInputs> = async ({
     name,
     lastName,
     password,
@@ -111,32 +111,48 @@ const Register = () => {
     email,
   }) => {
     setIsSubmiting(true);
-    createAnUser({
-      firstName: name,
-      lastName,
-      password,
-      phone,
-      dni,
-      email,
-    })
-      .then((response) => {
-        setIsSuccess(true);
-        setToken(response.accessToken);
-        setMessage(SUCCESS_MESSAGES[SUCCESS_MESSAGES_KEYS.USER_REGISTER]);
-        setTimeout(() => {
-          setIsSubmiting(false);
-          setIsAuthenticated(true);
-        }, messageDuration);
-      })
-      .catch((error) => {
-        console.log(error);
-        setIsError(true);
-        setMessage(ERROR_MESSAGES.INVALID_USER);
-        setIsSubmiting(false);
-        if (error.status === BAD_REQUEST) {
-          setIsError(true);
-        }
+    setIsError(false);
+    setMessage('');
+
+    try {
+      const response = await createAnUser({
+        firstName: name,
+        lastName,
+        password,
+        phone,
+        dni,
+        email,
       });
+
+      // Store token
+      setToken(response.accessToken);
+      
+      // Show success message
+      setIsSuccess(true);
+      setMessage(SUCCESS_MESSAGES[SUCCESS_MESSAGES_KEYS.USER_REGISTER]);
+      
+      // Update authentication state after a delay
+      setTimeout(() => {
+        setIsAuthenticated(true);
+      }, messageDuration);
+
+    } catch (error) {
+      console.error('Registration error:', error);
+      setIsError(true);
+      
+      // Set specific error message based on the error
+      if (error instanceof Error) {
+        if (error.message.includes('already exists')) {
+          setMessage(ERROR_MESSAGES.USER_EXISTS);
+        } else {
+          setMessage(ERROR_MESSAGES.INVALID_USER);
+        }
+      } else {
+        setMessage(ERROR_MESSAGES.INVALID_USER);
+      }
+    } finally {
+      setIsSubmiting(false);
+    }
   };
 
   return (

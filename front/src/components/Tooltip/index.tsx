@@ -29,21 +29,23 @@ export const Tooltip = ({
   message,
   event = ToolTipEventType.click,
   position = TooltipPosition.bottom,
-  className= '',
+  className = '',
 }: TooltipProps) => {
   const [isActive, setIsActive] = useState(false);
+
   const updateActive = () => setIsActive(true);
-  
+
   useEffect(() => {
     const cancelActive = () => setIsActive(false);
+
     if (isActive) {
-      setTimeout(() => window.addEventListener('click', cancelActive));
+      window.addEventListener('click', cancelActive);
       window.addEventListener('scroll', cancelActive);
     }
 
     return () => {
-      removeEventListener('click', cancelActive);
-      removeEventListener('scroll', cancelActive);
+      window.removeEventListener('click', cancelActive); // Corrección aquí
+      window.removeEventListener('scroll', cancelActive); // Corrección aquí
     };
   }, [isActive]);
 

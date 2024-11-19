@@ -15,7 +15,7 @@ const myInit = (method = 'GET', token?: string) => {
 const myRequest = (endpoint: string, method: string, token?: string) =>
   new Request(endpoint, myInit(method, token));
 
-const baseUrl = 'http://localhost:3500';
+const baseUrl = 'http://localhost:9091/api';
 
 const rejectPromise = (response?: Response): Promise<Response> =>
   Promise.reject({
@@ -25,7 +25,7 @@ const rejectPromise = (response?: Response): Promise<Response> =>
   });
 
 export const login = (email: string, password: string) => {
-  return fetch(myRequest(`${baseUrl}/login`, 'POST'), {
+  return fetch(myRequest(`${baseUrl}/auth/login`, 'POST'), {
     body: JSON.stringify({ email, password }),
   })
     .then((response) => {
@@ -41,7 +41,7 @@ export const login = (email: string, password: string) => {
 };
 
 export const createAnUser = (user: User) => {
-  return fetch(myRequest(`${baseUrl}/register`, 'POST'), {
+  return fetch(myRequest(`${baseUrl}/users/register`, 'POST'), {
     body: JSON.stringify(user),
   })
     .then((response) => {
@@ -50,10 +50,10 @@ export const createAnUser = (user: User) => {
       }
       return rejectPromise(response);
     })
-    .then((data) => {
+   /* .then((data) => {
       createAnAccount(data);
       return data;
-    })
+    })*/
     .catch((err) => {
       console.log(err);
       return rejectPromise(err);

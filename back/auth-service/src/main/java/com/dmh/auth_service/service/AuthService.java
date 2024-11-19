@@ -24,6 +24,8 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import com.dmh.auth_service.dto.TokenResponse;
 import org.springframework.http.HttpStatus;
@@ -93,14 +95,26 @@ public class AuthService implements IAuthService {
             throw new BadRequestException("Email and password are required");
         }
 
-        log.debug("Attempting authentication for user: {}", email);
         try {
-            return keycloakService.getTokens(email, password);
+            TokenResponse tokenResponse = keycloakService.getTokens(email, password);
+
+            // Additional validation
+            if (tokenResponse == null ||
+                    StringUtils.isEmpty(tokenResponse.token()) ||
+                    StringUtils.isEmpty(tokenResponse.refreshToken())) {
+                throw new UnauthorizedException("Invalid authentication credentials");
+            }
+
+            return tokenResponse;
+        } catch (HttpClientErrorException.Unauthorized e) {
+            log.error("Authentication failed: Invalid credentials", e);
+            throw new UnauthorizedException("Invalid username or password");
         } catch (Exception e) {
-            log.error("Authentication failed for user {}: {}", email, e.getMessage());
-            throw new UnauthorizedException("Authentication failed");
+            log.error("Authentication error: {}", e.getMessage(), e);
+            throw new InternalServerErrorException("Authentication service unavailable");
         }
     }
+
 
 
     @Override
