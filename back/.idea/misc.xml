@@ -16,6 +16,7 @@
         <option value="$PROJECT_DIR$/account-service/pom.xml" />
         <option value="$PROJECT_DIR$/transaction-service/pom.xml" />
         <option value="$PROJECT_DIR$/service-service/pom.xml" />
+        <option value="$PROJECT_DIR$/ping-service/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
