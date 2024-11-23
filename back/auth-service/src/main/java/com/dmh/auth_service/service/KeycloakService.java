@@ -1,24 +1,18 @@
 package com.dmh.auth_service.service;
 
-
 import com.dmh.auth_service.config.KeycloakProperties;
-import com.dmh.auth_service.dto.TokenRequest;
 import com.dmh.auth_service.dto.TokenResponse;
 import com.dmh.auth_service.exceptions.*;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.TokenVerifier;
 import org.keycloak.representations.AccessToken;
-import org.keycloak.util.JsonSerialization;
-import org.springframework.http.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -30,49 +24,87 @@ import java.util.Set;
 @Slf4j
 @RequiredArgsConstructor
 public class KeycloakService {
+
     private final KeycloakProperties keycloakProperties;
-    private final RestTemplate restTemplate;
+    private final WebClient webClient;
 
     public TokenResponse getTokens(String email, String password) {
+        log.info("Requesting tokens for user: {}", email);
+
         String tokenUrl = keycloakProperties.getAuthServerUrl() +
                 "/realms/" + keycloakProperties.getRealm() +
                 "/protocol/openid-connect/token";
 
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add(OAuth2Constants.GRANT_TYPE, OAuth2Constants.PASSWORD);
+        formData.add(OAuth2Constants.CLIENT_ID, keycloakProperties.getClientId());
+        formData.add(OAuth2Constants.CLIENT_SECRET, keycloakProperties.getClientSecret());
+        formData.add("username", email);
+        formData.add("password", password);
 
-            MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-            form.add(OAuth2Constants.GRANT_TYPE, OAuth2Constants.PASSWORD);
-            form.add(OAuth2Constants.CLIENT_ID, keycloakProperties.getClientId());
-            form.add(OAuth2Constants.CLIENT_SECRET, keycloakProperties.getClientSecret());
-            form.add("username", email);
-            form.add("password", password);
-            form.add("scope", "openid profile email");
+        return webClient.post()
+                .uri(tokenUrl)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .bodyToMono(Map.class)
+                .map(this::createTokenResponse)
+                .onErrorMap(e -> {
+                    log.error("Error during token request", e);
+                    return new UnauthorizedException("Invalid credentials or Keycloak error");
+                })
+                .block();
+    }
 
-            ResponseEntity<Map> response = restTemplate.postForEntity(
-                    tokenUrl,
-                    new HttpEntity<>(form, headers),
-                    Map.class
-            );
+    public TokenResponse refreshToken(String refreshToken) {
+        log.info("Refreshing token");
 
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                Map<String, Object> tokenData = response.getBody();
-                return createTokenResponse(tokenData);
-            }
+        String tokenUrl = keycloakProperties.getAuthServerUrl() +
+                "/realms/" + keycloakProperties.getRealm() +
+                "/protocol/openid-connect/token";
 
-            throw new UnauthorizedException("Authentication failed");
-        } catch (HttpClientErrorException.Unauthorized e) {
-            log.error("Invalid credentials for user: {}", email);
-            throw new UnauthorizedException("Invalid username or password");
-        } catch (Exception e) {
-            log.error("Token retrieval error", e);
-            throw new InternalServerErrorException("Authentication service error");
-        }
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add(OAuth2Constants.GRANT_TYPE, OAuth2Constants.REFRESH_TOKEN);
+        formData.add(OAuth2Constants.CLIENT_ID, keycloakProperties.getClientId());
+        formData.add(OAuth2Constants.CLIENT_SECRET, keycloakProperties.getClientSecret());
+        formData.add(OAuth2Constants.REFRESH_TOKEN, refreshToken);
 
+        return webClient.post()
+                .uri(tokenUrl)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .bodyToMono(Map.class)
+                .map(this::createTokenResponse)
+                .onErrorMap(e -> {
+                    log.error("Error refreshing token", e);
+                    return new InternalServerErrorException("Token refresh failed");
+                })
+                .block();
+    }
+
+    public void logoutUser(String accessToken) {
+        log.info("Logging out user");
+
+        String logoutUrl = keycloakProperties.getAuthServerUrl() +
+                "/realms/" + keycloakProperties.getRealm() +
+                "/protocol/openid-connect/logout";
+
+        webClient.post()
+                .uri(logoutUrl)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .retrieve()
+                .toBodilessEntity()
+                .onErrorMap(e -> {
+                    log.error("Error during logout", e);
+                    return new InternalServerErrorException("Logout failed");
+                })
+                .block();
     }
 
     private TokenResponse createTokenResponse(Map<String, Object> tokenData) {
+        log.info("Creating token response");
         return TokenResponse.builder()
                 .token((String) tokenData.get("access_token"))
                 .refreshToken((String) tokenData.get("refresh_token"))
@@ -82,93 +114,18 @@ public class KeycloakService {
                 .build();
     }
 
-    public TokenResponse refreshToken(String refreshToken) {
-        try {
-            String tokenUrl = keycloakProperties.getAuthServerUrl() +
-                    "/realms/" + keycloakProperties.getRealm() +
-                    "/protocol/openid-connect/token";
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-            MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-            form.add(OAuth2Constants.GRANT_TYPE, OAuth2Constants.REFRESH_TOKEN);
-            form.add(OAuth2Constants.CLIENT_ID, keycloakProperties.getClientId());
-            form.add(OAuth2Constants.CLIENT_SECRET, keycloakProperties.getClientSecret());
-            form.add(OAuth2Constants.REFRESH_TOKEN, refreshToken);
-
-            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(form, headers);
-
-            ResponseEntity<Map> response = restTemplate.postForEntity(
-                    tokenUrl,
-                    entity,
-                    Map.class
-            );
-
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                Map<String, Object> tokenData = response.getBody();
-                return TokenResponse.builder()
-                        .token((String) tokenData.get("access_token"))
-                        .refreshToken((String) tokenData.get("refresh_token"))
-                        .expiresIn(((Number) tokenData.get("expires_in")).longValue())
-                        .tokenType((String) tokenData.get("token_type"))
-                        .roles(extractRolesFromToken((String) tokenData.get("access_token")))
-                        .build();
-            }
-
-            throw new ConflictException("Failed to refresh tokens");
-        } catch (Exception e) {
-            log.error("Error refreshing tokens from Keycloak", e);
-            throw new InternalServerErrorException("Token refresh failed");
-        }
-    }
-
-
-
-    public void logoutUser(String accessToken) {
-        log.debug("Initiating logout for user with refresh token");
-
-            // Construir URL del endpoint de logout
-            String logoutUrl = keycloakProperties.getAuthServerUrl() +
-                    "/realms/" + keycloakProperties.getRealm() +
-                    "/protocol/openid-connect/logout";
-
-            // Configurar headers
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-            headers.setBearerAuth(accessToken);
-
-            HttpEntity<?> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<String> response = restTemplate.exchange(
-                    logoutUrl,
-                    HttpMethod.POST,
-                    entity,
-                    String.class
-            );
-
-            if (!response.getStatusCode().is2xxSuccessful()) {
-                throw new RuntimeException("Logout failed with status code: " + response.getStatusCode());
-            }
-        }
-
-
-
-
     private Set<String> extractRolesFromToken(String tokenString) {
+        log.info("Extracting roles from token");
         try {
             AccessToken token = TokenVerifier.create(tokenString, AccessToken.class).getToken();
             Set<String> roles = new HashSet<>();
 
-            // Handle realm roles
             if (token.getRealmAccess() != null) {
                 roles.addAll(token.getRealmAccess().getRoles());
             }
 
-            // Handle resource/client roles
             Map<String, AccessToken.Access> resourceAccess = token.getResourceAccess();
             if (resourceAccess != null) {
-                // Add roles for the current client
                 AccessToken.Access clientAccess = resourceAccess.get(keycloakProperties.getClientId());
                 if (clientAccess != null && clientAccess.getRoles() != null) {
                     roles.addAll(clientAccess.getRoles());
@@ -177,7 +134,7 @@ public class KeycloakService {
 
             return roles;
         } catch (Exception e) {
-            log.error("Error extracting roles from token: {}", e.getMessage(), e);
+            log.error("Error extracting roles from token", e);
             return new HashSet<>();
         }
     }

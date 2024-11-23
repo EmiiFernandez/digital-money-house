@@ -2,7 +2,6 @@ package com.dmh.auth_service.controller;
 
 import com.dmh.auth_service.dto.TokenRequest;
 import com.dmh.auth_service.dto.TokenResponse;
-import com.dmh.auth_service.exceptions.BadRequestException;
 import com.dmh.auth_service.exceptions.InternalServerErrorException;
 import com.dmh.auth_service.service.IAuthService;
 import jakarta.validation.Valid;

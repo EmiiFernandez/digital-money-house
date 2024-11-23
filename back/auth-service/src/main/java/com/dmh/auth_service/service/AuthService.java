@@ -20,13 +20,9 @@ import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 import com.dmh.auth_service.dto.TokenResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -117,12 +113,6 @@ public class AuthService implements IAuthService {
 
 
 
-    @Override
-    public void logoutUser(String token) {
-        log.debug("Calling Keycloak logout service");
-
-        keycloakService.logoutUser(token); // Usamos siempre el mismo token (Bearer o refresh)
-    }
 
     @Override
     public ResponseEntity<?> validateToken(String token) {
@@ -130,35 +120,33 @@ public class AuthService implements IAuthService {
             throw new BadRequestException("Token is required for validation");
         }
 
-        log.debug("Processing token validation request");
-
         try {
             JWT jwt = JWTParser.parse(token);
             JWTClaimsSet claims = jwt.getJWTClaimsSet();
 
-            // Validate expiration
+            // Validación de expiración
             Date expirationTime = claims.getExpirationTime();
             if (expirationTime == null || expirationTime.before(new Date())) {
                 throw new BadRequestException("Token has expired");
             }
 
-            // Validate issuer
+            // Validación de emisor
             String issuer = claims.getIssuer();
-            String expectedIssuer = keycloakProperties.getServerUrl() + "/realms/" + keycloakProperties.getRealm();
+            String expectedIssuer = keycloakProperties.getServerUrl() +
+                    "/realms/" +
+                    keycloakProperties.getRealm();
+
             if (!expectedIssuer.equals(issuer)) {
                 throw new BadRequestException("Invalid token issuer");
             }
 
             return ResponseEntity.ok(Map.of("message", "Token is valid"));
 
-        } catch (BadRequestException | UnauthorizedException e) {
-            throw e;
         } catch (Exception e) {
             log.error("Token validation failed: {}", e.getMessage());
             throw new BadRequestException("Invalid token");
         }
     }
-
 
 private boolean userExists(UsersResource usersResource, String email) {
     return !usersResource.search(email).isEmpty();
@@ -229,5 +217,10 @@ public String getUserIdFromKeycloak(String email) {
         throw new InternalServerErrorException("Failed to retrieve user from Keycloak");
     }
 }
+    @Override
+    public void logoutUser(String token) {
+        log.debug("Calling Keycloak logout service");
 
+        keycloakService.logoutUser(token);
+    }
 }
