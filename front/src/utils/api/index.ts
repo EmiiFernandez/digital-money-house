@@ -53,7 +53,7 @@ const rejectPromise = (response?: Response): Promise<Response> =>
       throw error;
     }
   };
-  
+
 export const createAnUser = async (user: User) => {
   try {
     const response = await fetch(
@@ -146,7 +146,7 @@ export const createAnAccount = (data: any): Promise<Response> => {
     alias,
     cvu,
     balance: 0,
-    name: `${user.firstName} ${user.lastName}`,
+    name: `${user.fir} ${user.lastname}`,
   };
 
   return fetch(

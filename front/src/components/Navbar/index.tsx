@@ -40,7 +40,7 @@ export const Navbar = ({ isAuthenticated = false }) => {
 
   useEffect(() => {
     if (user) {
-      setFullName(`${user.firstName} ${user.lastName}`);
+      setFullName(`${user.firstname} ${user.lastname}`);
     }
   }, [user]);
 

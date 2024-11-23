@@ -278,7 +278,7 @@ function SendMoneyForm() {
           <FormSingle
             name="amount"
             title={`¿Cuanto quieres transferir a ${
-              userDestination && userDestination.firstName
+              userDestination && userDestination.firstname
             } ?`}
             label="Monto"
             type="number"
@@ -315,7 +315,7 @@ function SendMoneyForm() {
                     <p className="">Para</p>
                     <p className="tw-font-bold">
                       {userDestination &&
-                        `${userDestination.firstName} ${userDestination.lastName}`}
+                        `${userDestination.firstname} ${userDestination.lastname}`}
                     </p>
                   </div>
                   <div className="tw-flex tw-flex-col tw-mb-4">

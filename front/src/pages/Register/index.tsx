@@ -31,7 +31,7 @@ import { useAuth, useLocalStorage } from '../../hooks';
 
 interface RegisterState {
   name: string;
-  lastName: string;
+  lastname: string;
   phone: string;
   dni: string;
   email: string;
@@ -42,7 +42,7 @@ interface RegisterState {
 
 interface RegisterInputs {
   name: string;
-  lastName: string;
+  lastname: string;
   phone: string;
   dni: string;
   email: string;
@@ -70,7 +70,7 @@ const Register = () => {
     email: '',
     password: '',
     name: '',
-    lastName: '',
+    lastname: '',
     phone: '',
     dni: '',
     passwordRepeated: '',
@@ -102,57 +102,41 @@ const Register = () => {
     maxLength?: number
   ) => handleChange<RegisterState>(event, setValues, maxLength);
 
-  const onSubmit: SubmitHandler<RegisterInputs> = async ({
+  const onSubmit: SubmitHandler<RegisterInputs> = ({
     name,
-    lastName,
+    lastname,
     password,
     phone,
     dni,
     email,
   }) => {
     setIsSubmiting(true);
-    setIsError(false);
-    setMessage('');
-
-    try {
-      const response = await createAnUser({
-        firstName: name,
-        lastName,
-        password,
-        phone,
-        dni,
-        email,
-      });
-
-      // Store token
-      setToken(response.accessToken);
-      
-      // Show success message
-      setIsSuccess(true);
-      setMessage(SUCCESS_MESSAGES[SUCCESS_MESSAGES_KEYS.USER_REGISTER]);
-      
-      // Update authentication state after a delay
-      setTimeout(() => {
-        setIsAuthenticated(true);
-      }, messageDuration);
-
-    } catch (error) {
-      console.error('Registration error:', error);
-      setIsError(true);
-      
-      // Set specific error message based on the error
-      if (error instanceof Error) {
-        if (error.message.includes('already exists')) {
-          setMessage(ERROR_MESSAGES.USER_EXISTS);
-        } else {
-          setMessage(ERROR_MESSAGES.INVALID_USER);
-        }
-      } else {
+    createAnUser({
+      firstname: name,
+      lastname,
+      password,
+      phone,
+      dni,
+      email,
+    })
+      .then((response) => {
+        setIsSuccess(true);
+        setToken(response.accessToken);
+        setMessage(SUCCESS_MESSAGES[SUCCESS_MESSAGES_KEYS.USER_REGISTER]);
+        setTimeout(() => {
+          setIsSubmiting(false);
+          setIsAuthenticated(true);
+        }, messageDuration);
+      })
+      .catch((error) => {
+        console.log(error);
+        setIsError(true);
         setMessage(ERROR_MESSAGES.INVALID_USER);
-      }
-    } finally {
-      setIsSubmiting(false);
-    }
+        setIsSubmiting(false);
+        if (error.status === BAD_REQUEST) {
+          setIsError(true);
+        }
+      });
   };
 
   return (
@@ -187,14 +171,14 @@ const Register = () => {
               <OutlinedInput
                 id="outlined-adornment-last-name"
                 type="text"
-                value={values.lastName}
-                {...register('lastName', nameValidationConfig)}
+                value={values.lastname}
+                {...register('lastname', nameValidationConfig)}
                 onChange={onChange}
-                label="lastName"
+                label="lastname"
               />
             </FormControl>
-            {errors.lastName && (
-              <ErrorMessage errors={errors.lastName as Errors} />
+            {errors.lastname && (
+              <ErrorMessage errors={errors.lastname as Errors} />
             )}
           </div>
           <div>

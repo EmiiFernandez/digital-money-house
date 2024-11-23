@@ -3,8 +3,8 @@
     {
       "email": "maub@gmail.com",
       "password": "$2a$10$p00z.4hbstv6MadwBACsluBO24qtvhaFsBcIftK6FrPdpR/ZeF5Ue",
-      "firstName": "Mauricio",
-      "lastName": "Brito",
+      "firstname": "Mauricio",
+      "lastname": "Brito",
       "phone": "1178978927",
       "dni": "90324324",
       "id": "mkJf2Lz"
@@ -12,8 +12,8 @@
     {
       "email": "maubrito@gmail.com",
       "password": "$2a$10$xLHzvO5eZo9pqw62piadAu3Y8JQWaJtY7.w66GqI9U16d6euGcUhK",
-      "firstName": "Aitana",
-      "lastName": "Torres",
+      "firstname": "Aitana",
+      "lastname": "Torres",
       "phone": "1178978927",
       "dni": "90636666",
       "id": "s0ElmHR"
