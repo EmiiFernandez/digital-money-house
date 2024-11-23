@@ -29,7 +29,7 @@ public class UserController {
 
 
     @GetMapping("/{user_id}")
-    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
+    @PreAuthorize("hasRole('INTERNAL_SERVICE', 'USER')")
     public ResponseEntity<?> getUserById(@PathVariable("user_id") Integer user_id) {
         ResponseGetUser user = userService.getUserById(user_id);
 
@@ -42,6 +42,13 @@ public class UserController {
             @RequestBody RequestUpdateUser updateUserRequest) {
         ResponseGetUser updatedUser = userService.updateUser(user_id, updateUserRequest);
         return ResponseEntity.ok(updatedUser);
+    }
+
+    @GetMapping("/keycloak/{keycloakId}")
+    @PreAuthorize("hasAnyRole('INTERNAL_SERVICE', 'USER', 'ADMIN')")
+    public ResponseEntity<?> getUserByKeycloakId(@PathVariable("keycloakId") String keycloakId) {
+        ResponseGetUser user = userService.getUserByKeycloakId(keycloakId);
+        return ResponseEntity.ok(user);
     }
 
 }

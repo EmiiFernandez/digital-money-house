@@ -86,7 +86,7 @@
             <version>1.5.0.Final</version>
             <scope>provided</scope>
         </dependency>
-        <!-- traceo distribuido -->
+        <!-- traceo distribuido
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-otel</artifactId>
@@ -101,7 +101,7 @@
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-micrometer</artifactId>
         </dependency>
-        <!-- traceo distribuido -->
+        traceo distribuido -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>

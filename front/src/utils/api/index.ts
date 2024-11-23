@@ -69,8 +69,8 @@ export const createAnUser = async (user: User) => {
   }
 };
 
-export const getUser = (id: string): Promise<User> => {
-  return fetch(myRequest(`${baseUrl}/users/${id}`, 'GET'))
+export const getUser = (userId: string): Promise<User> => {
+  return fetch(myRequest(`${baseUrl}/users/${userId}`, 'GET'))
     .then((response) =>
       response.ok ? response.json() : rejectPromise(response)
     )
@@ -79,6 +79,29 @@ export const getUser = (id: string): Promise<User> => {
       return rejectPromise(err);
     });
 };
+
+export const getUserByKeycloakId = (keycloakId: string): Promise<User> => {
+  const token = localStorage.getItem("token"); // Obtén el token desde el localStorage
+  return fetch(`${baseUrl}/api/users/keycloak/${keycloakId}`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`, // Agrega el token como un encabezado Authorization
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        return response.json().then((data) => {
+          throw new Error(data.message || "Unauthorized");
+        });
+      }
+      return response.json(); // Devuelve los datos del usuario si la solicitud es exitosa
+    })
+    .catch((err) => {
+      console.error("Error fetching user info:", err);
+      throw err;
+    });
+};
+
 
 export const updateUser = (
   id: string,

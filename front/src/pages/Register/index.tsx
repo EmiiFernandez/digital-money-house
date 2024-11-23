@@ -6,6 +6,7 @@ import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
+import { useNavigate } from "react-router-dom"; // Importa useNavigate
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import {
@@ -26,8 +27,8 @@ import {
   SUCCESS_MESSAGES_KEYS,
   SUCCESS_MESSAGES,
   BAD_REQUEST,
+  ROUTES,
 } from '../../constants/';
-import { useAuth, useLocalStorage } from '../../hooks';
 
 interface RegisterState {
   name: string;
@@ -62,11 +63,9 @@ const Register = () => {
     criteriaMode: 'all',
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [token, setToken] = useLocalStorage('token');
-  const { setIsAuthenticated } = useAuth();
+  const navigate = useNavigate(); // Inicializa useNavigate
 
-  const [values, setValues] = React.useState<RegisterState>({
+  const [values, setValues] = useState<RegisterState>({
     email: '',
     password: '',
     name: '',
@@ -76,9 +75,10 @@ const Register = () => {
     passwordRepeated: '',
     showPassword: false,
   });
+
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [isError, setIsError] = useState<boolean>(false);
-  const [isSubmiting, setIsSubmiting] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
 
   const isEmpty = isValueEmpty(values);
@@ -110,7 +110,7 @@ const Register = () => {
     dni,
     email,
   }) => {
-    setIsSubmiting(true);
+    setIsSubmitting(true);
     createAnUser({
       firstname: name,
       lastname,
@@ -121,23 +121,22 @@ const Register = () => {
     })
       .then((response) => {
         setIsSuccess(true);
-        setToken(response.accessToken);
         setMessage(SUCCESS_MESSAGES[SUCCESS_MESSAGES_KEYS.USER_REGISTER]);
+        console.log('User registered successfully:', response); // Muestra la respuesta en consola
+        setIsSubmitting(false);
         setTimeout(() => {
-          setIsSubmiting(false);
-          setIsAuthenticated(true);
-        }, messageDuration);
+          navigate(ROUTES.LOGIN); // Redirige al login tras el éxito
+        }, messageDuration); // Da tiempo para que el SnackBar sea visible
+
       })
       .catch((error) => {
-        console.log(error);
+        console.error('Error creating user:', error);
         setIsError(true);
         setMessage(ERROR_MESSAGES.INVALID_USER);
-        setIsSubmiting(false);
-        if (error.status === BAD_REQUEST) {
-          setIsError(true);
-        }
+        setIsSubmitting(false);
       });
   };
+
 
   return (
     <div className="tw-w-full tw-h-full tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center">
@@ -302,13 +301,13 @@ const Register = () => {
           <div className="tw-w-full tw-flex tw-justify-center">
             <Button
               className={`tw-h-14 tw-w-80 ${
-                hasErrors || !isDirty || isEmpty || isSubmiting
+                hasErrors || !isDirty || isEmpty || isSubmitting
                   ? 'tw-text-neutral-gray-300 tw-border-neutral-gray-300 tw-cursor-not-allowed'
                   : ''
               }`}
               type="submit"
               variant="outlined"
-              disabled={hasErrors || !isDirty || isEmpty || isSubmiting}
+              disabled={hasErrors || !isDirty || isEmpty || isSubmitting}
             >
               Ingresar
             </Button>

@@ -10,4 +10,5 @@ public interface IUserService {
     ResponseGetUser getUserById(Integer user_id);
     ResponseGetUser updateUser(Integer user_id, RequestUpdateUser requestUpdateUser);
     void deleteUser(Integer user_id);
+    ResponseGetUser getUserByKeycloakId(String keycloakId);
 }

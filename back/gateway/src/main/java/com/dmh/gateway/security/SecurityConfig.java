@@ -39,6 +39,7 @@ public class SecurityConfig {
     public CorsWebFilter corsWebFilter() {
         return new CorsWebFilter(corsConfigurationSource());
     }
+
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http

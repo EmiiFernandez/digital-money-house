@@ -100,7 +100,7 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- traceo distribuido -->
+		<!-- traceo distribuido
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-tracing-bridge-otel</artifactId>
@@ -121,7 +121,7 @@
 			<version>25.0.0</version>
 			<scope>compile</scope>
 		</dependency>
-		<!-- traceo distribuido -->
+		traceo distribuido -->
 
 	</dependencies>
 

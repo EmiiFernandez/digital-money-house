@@ -12,6 +12,7 @@ import { login } from "../../utils"; // Llama a tu API
 import { useAuth, useLocalStorage } from "../../hooks";
 import { SnackBar } from "../../components";
 import { BAD_REQUEST, ERROR_MESSAGES } from "../../constants";
+import { useNavigate } from "react-router-dom";  // Importa el hook
 
 export interface LoginInputs {
   email: string;
@@ -21,6 +22,7 @@ export interface LoginInputs {
 const messageDuration = 2000;
 
 const Login = () => {
+  const navigate = useNavigate();  // Inicializa useNavigate para redirección
   const {
     register,
     handleSubmit,
@@ -45,9 +47,11 @@ const Login = () => {
       .then((response) => {
         setToken(response.token); // Asegúrate de que `response.token` sea el token JWT
         setIsAuthenticated(true); // Marca como autenticado
+        navigate("/dashboard");  // Redirige al dashboard después de login exitoso
       })
       .catch((error) => {
         console.error("Login failed", error);
+        setIsError(true);  // Maneja el error de login
       });
   };
 
