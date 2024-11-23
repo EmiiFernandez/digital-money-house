@@ -1,21 +1,19 @@
 import { UserAccount, User, Transaction, Card } from '../../types';
 
-const myInit = (method = 'GET', token?: string) => {
-  return {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: token ? `Bearer ${token}` : '',
-    },
-    mode: 'cors' as RequestMode,
-    cache: 'default' as RequestCache,
-  };
-};
+const baseUrl = 'http://localhost:9091/api';
+
+const myInit = (method: string, token?: string) => ({
+  method,
+  headers: {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }), // Añade el token solo si está presente
+  },
+  mode: "cors" as RequestMode,
+  cache: "default" as RequestCache,
+});
 
 const myRequest = (endpoint: string, method: string, token?: string) =>
   new Request(endpoint, myInit(method, token));
-
-const baseUrl = 'http://localhost:9091/api';
 
 const rejectPromise = (response?: Response): Promise<Response> =>
   Promise.reject({
@@ -24,40 +22,51 @@ const rejectPromise = (response?: Response): Promise<Response> =>
     err: true,
   });
 
-export const login = (email: string, password: string) => {
-  return fetch(myRequest(`${baseUrl}/auth/login`, 'POST'), {
-    body: JSON.stringify({ email, password }),
-  })
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      }
-      return rejectPromise(response);
-    })
-    .catch((err) => {
-      console.log(err);
-      return rejectPromise(err);
-    });
-};
+  const handleResponse = async (response: Response) => {
+    if (response.ok) {
+      return response.json();
+    }
+    const error = await response.json().catch(() => ({})); // Intenta obtener el cuerpo de error
+    throw { status: response.status, ...error };
+  };
 
-export const createAnUser = (user: User) => {
-  return fetch(myRequest(`${baseUrl}/users/register`, 'POST'), {
-    body: JSON.stringify(user),
-  })
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
+  export const login = async (email: string, password: string) => {
+    try {
+      const response = await fetch(`${baseUrl}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Login failed");
       }
-      return rejectPromise(response);
-    })
-   /* .then((data) => {
-      createAnAccount(data);
+  
+      const data = await response.json();
+      console.log("Received token:", data.token); // Asegúrate de que el token aparezca aquí
       return data;
-    })*/
-    .catch((err) => {
-      console.log(err);
-      return rejectPromise(err);
-    });
+    } catch (error) {
+      console.error("Error during login:", error);
+      throw error;
+    }
+  };
+  
+export const createAnUser = async (user: User) => {
+  try {
+    const response = await fetch(
+      myRequest(`${baseUrl}/users/register`, "POST"),
+      {
+        body: JSON.stringify(user),
+      }
+    );
+    return await handleResponse(response);
+  } catch (error) {
+    console.error("Error during user creation:", error);
+    throw error;
+  }
 };
 
 export const getUser = (id: string): Promise<User> => {
