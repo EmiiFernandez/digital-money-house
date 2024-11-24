@@ -82,7 +82,7 @@ export const getUser = (userId: string): Promise<User> => {
 
 export const getUserByKeycloakId = (keycloakId: string): Promise<User> => {
   const token = localStorage.getItem("token"); // Obtén el token desde el localStorage
-  return fetch(`${baseUrl}/api/users/keycloak/${keycloakId}`, {
+  return fetch(`${baseUrl}/users/keycloak/${keycloakId}`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`, // Agrega el token como un encabezado Authorization
