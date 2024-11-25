@@ -1,24 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
 
-export const useLocalStorage = (key: string) => {
-  const [storedValue, setStoredValue] = useState(() => {
-    try {
-      const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : null;
-    } catch (error) {
-      console.error("Error reading localStorage:", error);
-      return null;
+export function useLocalStorage(
+  key: string,
+  { serialize = JSON.stringify, deserialize = JSON.parse } = {}
+) {
+  const [value, setValue] = useState(() => {
+    const valueInLocalStorage = window.localStorage.getItem(key);
+    if (valueInLocalStorage) {
+      return deserialize(valueInLocalStorage);
     }
+    return null;
   });
 
-  const setValue = (value: any) => {
-    try {
-      window.localStorage.setItem(key, JSON.stringify(value));
-      setStoredValue(value);
-    } catch (error) {
-      console.error("Error setting localStorage:", error);
-    }
-  };
+  const prevKeyRef = useRef(key);
 
-  return [storedValue, setValue];
-};
+  useEffect(() => {
+    const prevKey = prevKeyRef.current;
+
+    if (prevKey !== key) {
+      window.localStorage.remove(prevKey);
+    }
+    prevKeyRef.current = key;
+    window.localStorage.setItem(key, serialize(value));
+  }, [value, serialize, key]);
+
+  return [value, setValue];
+}

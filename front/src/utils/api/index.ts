@@ -46,7 +46,7 @@ const rejectPromise = (response?: Response): Promise<Response> =>
       }
   
       const data = await response.json();
-      console.log("Received token:", data.token); // Asegúrate de que el token aparezca aquí
+      console.log("Received token:", data.token); 
       return data;
     } catch (error) {
       console.error("Error during login:", error);
@@ -80,27 +80,31 @@ export const getUser = (user_id: number): Promise<User> => {
     });
 };
 
-export const getUserByKeycloakId = (keycloakId: string): Promise<User> => {
-  const token = localStorage.getItem("token"); // Obtén el token desde el localStorage
+export const getUserByKeycloakId = (keycloakId: string): Promise<User | null> => {
+  const token = localStorage.getItem("token");
   return fetch(`${baseUrl}/users/keycloak/${keycloakId}`, {
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // Agrega el token como un encabezado Authorization
+      Authorization: `Bearer ${token}`,
     },
   })
-    .then((response) => {
+    .then(async (response) => {
       if (!response.ok) {
         return response.json().then((data) => {
           throw new Error(data.message || "Unauthorized");
         });
       }
-      return response.json(); // Devuelve los datos del usuario si la solicitud es exitosa
+      console.log("HTTP status:", response.status);
+      console.log("Raw response:", await response.text());
+      const text = await response.text();
+      return text ? JSON.parse(text) : null;
     })
     .catch((err) => {
       console.error("Error fetching user info:", err);
       throw err;
     });
 };
+
 
 
 export const updateUser = (

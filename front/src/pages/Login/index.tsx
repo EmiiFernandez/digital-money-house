@@ -45,13 +45,13 @@ const Login = () => {
   const onSubmit: SubmitHandler<LoginInputs> = ({ email, password }) => {
     login(email, password)
       .then((response) => {
-        setToken(response.token); // Asegúrate de que `response.token` sea el token JWT
-        setIsAuthenticated(true); // Marca como autenticado
-        navigate("/dashboard");  // Redirige al dashboard después de login exitoso
+        setToken(response.token); 
+        setIsAuthenticated(true); 
+        navigate("/dashboard");  
       })
       .catch((error) => {
         console.error("Login failed", error);
-        setIsError(true);  // Maneja el error de login
+        setIsError(true);  
       });
   };
 

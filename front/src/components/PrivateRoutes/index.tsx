@@ -6,14 +6,15 @@ import { useAuth } from '../../hooks/useAuth';
 export const PrivateRoutes = () => {
   const [token] = useLocalStorage('token');
   const { isAuthenticated, setIsAuthenticated } = useAuth();
-
   useEffect(() => {
-    if (token) {
-      setIsAuthenticated(true); // Si hay token, el usuario está autenticado
-    } else {
-      setIsAuthenticated(false); // Si no hay token, el usuario no está autenticado
+    if (isAuthenticated) {
+      if (token) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
     }
-  }, [token, setIsAuthenticated]);
+  }, [isAuthenticated, setIsAuthenticated, token]);
 
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 };
