@@ -46,14 +46,17 @@ const rejectPromise = (response?: Response): Promise<Response> =>
       }
   
       const data = await response.json();
-      console.log("Received token:", data.token); 
+      console.log("Received token:", data.token);
+  
+      localStorage.setItem("token", data.token);
+  
       return data;
     } catch (error) {
       console.error("Error during login:", error);
       throw error;
     }
   };
-
+  
 export const createAnUser = async (user: User) => {
   try {
     const response = await fetch(
