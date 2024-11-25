@@ -69,8 +69,8 @@ export const createAnUser = async (user: User) => {
   }
 };
 
-export const getUser = (userId: string): Promise<User> => {
-  return fetch(myRequest(`${baseUrl}/users/${userId}`, 'GET'))
+export const getUser = (user_id: number): Promise<User> => {
+  return fetch(myRequest(`${baseUrl}/users/${user_id}`, 'GET'))
     .then((response) =>
       response.ok ? response.json() : rejectPromise(response)
     )
@@ -182,8 +182,8 @@ export const createAnAccount = (data: any): Promise<Response> => {
   );
 };
 
-export const getAccount = (id: string, token: string): Promise<UserAccount> => {
-  return fetch(myRequest(`${baseUrl}/users/${id}/accounts`, 'GET', token), {})
+export const getAccount = (user_id: number, token: string): Promise<UserAccount> => {
+  return fetch(myRequest(`${baseUrl}/users/${user_id}/accounts`, 'GET', token), {})
     .then((response) => {
       if (response.ok) {
         return response.json().then((account) => account[0]);
@@ -208,11 +208,11 @@ export const getAccounts = (): Promise<UserAccount[]> => {
 };
 
 export const updateAccount = (
-  id: string,
+  user_id: number,
   data: any,
   token: string
 ): Promise<Response> => {
-  return fetch(myRequest(`${baseUrl}/users/${id}/accounts/1`, 'PATCH', token), {
+  return fetch(myRequest(`${baseUrl}/users/${user_id}/accounts/1`, 'PATCH', token), {
     body: JSON.stringify(data),
   })
     .then((response) =>
@@ -225,13 +225,13 @@ export const updateAccount = (
 };
 
 export const getUserActivities = (
-  userId: string,
+  user_id: number,
   token: string,
   limit?: number
 ): Promise<Transaction[]> => {
   return fetch(
     myRequest(
-      `${baseUrl}/users/${userId}/activities${limit ? `?_limit=${limit}` : ''}`,
+      `${baseUrl}/users/${user_id}/activities${limit ? `?_limit=${limit}` : ''}`,
       'GET',
       token
     )
@@ -249,13 +249,13 @@ export const getUserActivities = (
 };
 
 export const getUserActivity = (
-  userId: string,
+  user_id: number,
   activityId: string,
   token: string
 ): Promise<Transaction> => {
   return fetch(
     myRequest(
-      `${baseUrl}/users/${userId}/activities/${activityId}`,
+      `${baseUrl}/users/${user_id}/activities/${activityId}`,
       'GET',
       token
     )
@@ -273,10 +273,10 @@ export const getUserActivity = (
 };
 
 export const getUserCards = (
-  userId: string,
+  user_id: number,
   token: string
 ): Promise<Card[]> => {
-  return fetch(myRequest(`${baseUrl}/users/${userId}/cards`, 'GET', token))
+  return fetch(myRequest(`${baseUrl}/users/${user_id}/cards`, 'GET', token))
     .then((response) => {
       if (response.ok) {
         return response.json();
@@ -289,8 +289,8 @@ export const getUserCards = (
     });
 };
 
-export const getUserCard = (userId: string, cardId: string): Promise<Card> => {
-  return fetch(myRequest(`${baseUrl}/users/${userId}/cards/${cardId}`, 'GET'))
+export const getUserCard = (user_id: number, cardId: string): Promise<Card> => {
+  return fetch(myRequest(`${baseUrl}/users/${user_id}/cards/${cardId}`, 'GET'))
     .then((response) => {
       if (response.ok) {
         return response.json();
@@ -304,12 +304,12 @@ export const getUserCard = (userId: string, cardId: string): Promise<Card> => {
 };
 
 export const deleteUserCard = (
-  userId: string,
+  user_id: number,
   cardId: string,
   token: string
 ): Promise<Response> => {
   return fetch(
-    myRequest(`${baseUrl}/users/${userId}/cards/${cardId}`, 'DELETE', token)
+    myRequest(`${baseUrl}/users/${user_id}/cards/${cardId}`, 'DELETE', token)
   )
     .then((response) => {
       if (response.ok) {
@@ -324,11 +324,11 @@ export const deleteUserCard = (
 };
 
 export const createUserCard = (
-  userId: string,
+  user_id: number,
   card: any,
   token: string
 ): Promise<Response> => {
-  return fetch(myRequest(`${baseUrl}/users/${userId}/cards`, 'POST', token), {
+  return fetch(myRequest(`${baseUrl}/users/${user_id}/cards`, 'POST', token), {
     body: JSON.stringify(card),
   })
     .then((response) =>
@@ -342,7 +342,7 @@ export const createUserCard = (
 
 // TODO: edit when backend is ready
 export const createDepositActivity = (
-  userId: string,
+  user_id: number,
   amount: number,
   token: string
 ) => {
@@ -357,7 +357,7 @@ export const createDepositActivity = (
   };
 
   return fetch(
-    myRequest(`${baseUrl}/users/${userId}/activities`, 'POST', token),
+    myRequest(`${baseUrl}/users/${user_id}/activities`, 'POST', token),
     {
       body: JSON.stringify(activity),
     }
@@ -366,7 +366,7 @@ export const createDepositActivity = (
       response.ok ? response.json() : rejectPromise(response)
     )
     .then((data) => {
-      depositMoney(data.amount, userId, token);
+      depositMoney(data.amount, user_id, token);
     })
     .catch((err) => {
       console.log(err);
@@ -375,8 +375,8 @@ export const createDepositActivity = (
 };
 
 // TODO: remove when backend is ready
-const depositMoney = (amount: number, userId: string, token: string) => {
-  return getAccount(userId, token)
+const depositMoney = (amount: number, user_id: number, token: string) => {
+  return getAccount(user_id, token)
     .then((account) => {
       const newBalance = account.balance + amount;
       const accountId = account.id;
@@ -388,7 +388,7 @@ const depositMoney = (amount: number, userId: string, token: string) => {
     .then(({ newBalance, accountId }) => {
       fetch(
         myRequest(
-          `${baseUrl}/users/${userId}/accounts/${accountId}`,
+          `${baseUrl}/users/${user_id}/accounts/${accountId}`,
           'PATCH',
           token
         ),
@@ -408,7 +408,7 @@ const depositMoney = (amount: number, userId: string, token: string) => {
 
 // TODO: edit when backend is ready
 export const createTransferActivity = (
-  userId: string,
+  user_id: number,
   token: string,
   origin: string,
   destination: string,
@@ -416,7 +416,7 @@ export const createTransferActivity = (
   name?: string
 ) => {
   return fetch(
-    myRequest(`${baseUrl}/users/${userId}/activities`, 'POST', token),
+    myRequest(`${baseUrl}/users/${user_id}/activities`, 'POST', token),
     {
       body: JSON.stringify({
         type: 'Transfer',
@@ -432,7 +432,7 @@ export const createTransferActivity = (
       response.ok ? response.json() : rejectPromise(response)
     )
     .then((response) => {
-      discountMoney(response.amount, userId, token);
+      discountMoney(response.amount, user_id, token);
       return response;
     })
     .catch((err) => {
@@ -442,8 +442,8 @@ export const createTransferActivity = (
 };
 
 // TODO: remove when backend is ready
-const discountMoney = (amount: number, userId: string, token: string) => {
-  return getAccount(userId, token)
+const discountMoney = (amount: number, user_id: number, token: string) => {
+  return getAccount(user_id, token)
     .then((account) => {
       // amount is negavite
       const newBalance = account.balance + amount;
@@ -456,7 +456,7 @@ const discountMoney = (amount: number, userId: string, token: string) => {
     .then(({ newBalance, accountId }) => {
       fetch(
         myRequest(
-          `${baseUrl}/users/${userId}/accounts/${accountId}`,
+          `${baseUrl}/users/${user_id}/accounts/${accountId}`,
           'PATCH',
           token
         ),

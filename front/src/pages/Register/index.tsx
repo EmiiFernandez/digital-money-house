@@ -34,7 +34,7 @@ interface RegisterState {
   name: string;
   lastname: string;
   phone: string;
-  dni: string;
+  dni: number | null;
   email: string;
   password: string;
   passwordRepeated: string;
@@ -45,7 +45,7 @@ interface RegisterInputs {
   name: string;
   lastname: string;
   phone: string;
-  dni: string;
+  dni: number;
   email: string;
   password: string;
   passwordRepeated: string;
@@ -71,7 +71,7 @@ const Register = () => {
     name: '',
     lastname: '',
     phone: '',
-    dni: '',
+    dni: null,
     passwordRepeated: '',
     showPassword: false,
   });
@@ -186,7 +186,7 @@ const Register = () => {
               <OutlinedInput
                 id="outlined-adornment-dni"
                 type="number"
-                value={values.dni}
+                value={values.dni ?? ''} 
                 {...register('dni', dniValidationConfig)}
                 onChange={(event) => onChange(event, 8)}
                 label="dni"

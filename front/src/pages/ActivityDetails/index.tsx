@@ -34,8 +34,8 @@ const ActivityDetails = () => {
   const { user } = useUserInfo();
 
   useEffect(() => {
-    if (user && user.id) {
-      getUserActivity(user.id, activityId, token)
+    if (user && user.user_id) {
+      getUserActivity(user.user_id, activityId, token)
         .then((activity) => {
           if (activity && activity.amount && activity.type) {
             setUserActivity(activity);

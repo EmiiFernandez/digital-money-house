@@ -65,8 +65,8 @@ const Profile = () => {
   const { setIsAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (user && user.id) {
-      getAccount(user.id, token)
+    if (user && user.user_id) {
+      getAccount(user.user_id, token)
         .then((account) => {
           if (account && account.alias && account.cvu) {
             setUserAccount(account);
@@ -90,8 +90,8 @@ const Profile = () => {
   ) => setUserAccount({ ...userAccount, alias: event.target.value });
 
   const onSubmit: SubmitHandler<IProfile> = (data) => {
-    if (user && user.id) {
-      updateAccount(user.id, { alias: data.alias }, token)
+    if (user && user.user_id) {
+      updateAccount(user.user_id, { alias: data.alias }, token)
         .then((response) => {
           if (response.status) {
             setIsError(true);

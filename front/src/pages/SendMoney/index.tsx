@@ -41,8 +41,8 @@ const SendMoney = () => {
   const [token] = useLocalStorage('token');
 
   useEffect(() => {
-    if (user && user.id && !step) {
-      getUserActivities(user.id, token)
+    if (user && user.user_id && !step) {
+      getUserActivities(user.user_id, token)
         .then((activities) => {
           if ((activities as Transaction[]).length > 0) {
             const parsedActivities = activities.filter(
@@ -175,18 +175,18 @@ function SendMoneyForm() {
 
   useEffect(() => {
     if (userDestinationAccount) {
-      const { userId } = userDestinationAccount;
-      getUser(userId).then((user) => {
+      const { user_id } = userDestinationAccount;
+      getUser(user_id).then((user) => {
         setUserDestination(user);
       });
     }
   }, [navigate, userDestinationAccount]);
 
   useEffect(() => {
-    if (user && user.id) {
+    if (user && user.user_id) {
       getAccounts().then((accounts) => {
         const userAccount = accounts.find(
-          (account) => account.userId === user.id
+          (account) => account.user_id === user.user_id
         );
         if (userAccount) {
           setUserOriginAccount(userAccount);
@@ -229,16 +229,16 @@ function SendMoneyForm() {
       const destinationName = userDestinationAccount
         ? userDestinationAccount.name
         : '';
-      if (user && user.id) {
+      if (user && user.user_id) {
         createTransferActivity(
-          user.id,
+          user.user_id,
           token,
           origin,
           destination,
           amount,
           destinationName
         ).then((response) => {
-          navigate(`${ROUTES.ACTIVITY_DETAILS}?${STEP}${response.id}`);
+          navigate(`${ROUTES.ACTIVITY_DETAILS}?${STEP}${response.user_id}`);
         });
       }
     };

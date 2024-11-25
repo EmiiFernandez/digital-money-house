@@ -43,8 +43,8 @@ const Dashboard = () => {
   const { logout } = useAuth();
 
   useEffect(() => {
-    if (user && user.id) {
-      getUserActivities(user.id, token)
+    if (user && user.user_id) {
+      getUserActivities(user.user_id, token)
         .then((activities) => {
           if ((activities as Transaction[]).length > 0) {
             const orderedActivities = sortByDate(activities);
@@ -65,8 +65,8 @@ const Dashboard = () => {
   }, [logout, token, user]);
 
   useEffect(() => {
-    if ((user && user.id) || (user && user.id && isSuccess)) {
-      getAccount(user.id, token)
+    if ((user && user.user_id) || (user && user.user_id && isSuccess)) {
+      getAccount(user.user_id, token)
         .then((account) => {
           if ((account as UserAccount).balance) {
             setUserAccount({

@@ -112,12 +112,17 @@ public class AuthService implements IAuthService {
     }
 
 
-
-
-    @Override
     public ResponseEntity<?> validateToken(String token) {
         if (token == null || token.isEmpty()) {
             throw new BadRequestException("Token is required for validation");
+        }
+
+        // Validación de configuración
+        if (keycloakProperties.getAuthServerUrl() == null || keycloakProperties.getRealm() == null) {
+            log.error("Keycloak configuration is missing. AuthServerUrl: {}, Realm: {}",
+                    keycloakProperties.getAuthServerUrl(),
+                    keycloakProperties.getRealm());
+            throw new IllegalStateException("Keycloak configuration is missing");
         }
 
         try {
@@ -130,93 +135,108 @@ public class AuthService implements IAuthService {
                 throw new BadRequestException("Token has expired");
             }
 
-            // Validación de emisor
-            String issuer = claims.getIssuer();
-            String expectedIssuer = keycloakProperties.getServerUrl() +
-                    "/realms/" +
-                    keycloakProperties.getRealm();
+            // Construcción del issuer esperado
+            String expectedIssuer = keycloakProperties.getAuthServerUrl();
+            if (!expectedIssuer.endsWith("/")) {
+                expectedIssuer += "/";
+            }
+            expectedIssuer += "realms/" + keycloakProperties.getRealm();
 
-            if (!expectedIssuer.equals(issuer)) {
+            // Log para debugging
+            String actualIssuer = claims.getIssuer();
+            log.debug("Token validation - Expected issuer: {}", expectedIssuer);
+            log.debug("Token validation - Actual issuer: {}", actualIssuer);
+
+            if (!expectedIssuer.equals(actualIssuer)) {
+                log.error("Issuer mismatch - Expected: {}, Got: {}", expectedIssuer, actualIssuer);
                 throw new BadRequestException("Invalid token issuer");
             }
 
-            return ResponseEntity.ok(Map.of("message", "Token is valid"));
+            return ResponseEntity.ok(Map.of(
+                    "message", "Token is valid",
+                    "issuer", actualIssuer,
+                    "expiration", expirationTime,
+                    "claims", claims.getClaims()
+            ));
 
         } catch (Exception e) {
             log.error("Token validation failed: {}", e.getMessage());
-            throw new BadRequestException("Invalid token");
+            throw new BadRequestException("Token validation failed: " + e.getMessage());
         }
     }
 
-private boolean userExists(UsersResource usersResource, String email) {
-    return !usersResource.search(email).isEmpty();
-}
 
-private UserRepresentation createUserRepresentation(TokenRequest tokenRequest) {
-    UserRepresentation user = new UserRepresentation();
-    user.setEnabled(true);
-    user.setUsername(tokenRequest.email());
-    user.setEmail(tokenRequest.email());
-    user.setEmailVerified(true); //false si quiero verificar email
 
-    CredentialRepresentation credential = new CredentialRepresentation();
-    credential.setType(CredentialRepresentation.PASSWORD);
-    credential.setValue(tokenRequest.password());
-    credential.setTemporary(false);
-
-    user.setCredentials(Collections.singletonList(credential));
-
-    return user;
-}
-
-private void assignDefaultRole(RealmResource realmResource, UsersResource usersResource, String userId) {
-    UserResource userResource = usersResource.get(userId);
-    RoleRepresentation userRole = realmResource.roles()
-            .get("user-role")
-            .toRepresentation();
-
-    userResource.roles().realmLevel().add(Collections.singletonList(userRole));
-}
-
-public void deleteUser(String keycloakId) {
-    try {
-        // Inicializa el cliente de Keycloak
-        Keycloak keycloak = keycloakClientConfiguration.initializeKeycloakAdmin();
-        RealmResource realmResource = keycloak.realm(keycloakProperties.getRealm());
-        UsersResource usersResource = realmResource.users();
-
-        // Intentar eliminar el usuario directamente usando su ID
-        usersResource.delete(keycloakId);
-        log.info("Successfully deleted user from Keycloak. UserId: {}", keycloakId);
-    } catch (NotFoundException e) {
-        log.warn("User not found in Keycloak during cleanup: {}", keycloakId);
-        throw new NotFoundException("User not found in auth service");
-    } catch (Exception e) {
-        log.error("Error deleting user from Keycloak. UserId: {}", keycloakId, e);
-        throw new InternalServerErrorException("Failed to delete user from auth service");
+    private boolean userExists(UsersResource usersResource, String email) {
+        return !usersResource.search(email).isEmpty();
     }
-}
 
-public String getUserIdFromKeycloak(String email) {
-    try {
-        Keycloak keycloak = keycloakClientConfiguration.initializeKeycloakAdmin();
-        RealmResource realmResource = keycloak.realm(keycloakProperties.getRealm());
-        List<UserRepresentation> users = realmResource.users().search(email, null, null, null, 0, 1);
+    private UserRepresentation createUserRepresentation(TokenRequest tokenRequest) {
+        UserRepresentation user = new UserRepresentation();
+        user.setEnabled(true);
+        user.setUsername(tokenRequest.email());
+        user.setEmail(tokenRequest.email());
+        user.setEmailVerified(true); //false si quiero verificar email
 
-        if (!users.isEmpty()) {
-            String keycloakUserId = users.get(0).getId();
-            log.debug("Found Keycloak user ID: {} for email: {}", keycloakUserId, email);
-            return keycloakUserId;
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(tokenRequest.password());
+        credential.setTemporary(false);
+
+        user.setCredentials(Collections.singletonList(credential));
+
+        return user;
+    }
+
+    private void assignDefaultRole(RealmResource realmResource, UsersResource usersResource, String userId) {
+        UserResource userResource = usersResource.get(userId);
+        RoleRepresentation userRole = realmResource.roles()
+                .get("user-role")
+                .toRepresentation();
+
+        userResource.roles().realmLevel().add(Collections.singletonList(userRole));
+    }
+
+    public void deleteUser(String keycloakId) {
+        try {
+            // Inicializa el cliente de Keycloak
+            Keycloak keycloak = keycloakClientConfiguration.initializeKeycloakAdmin();
+            RealmResource realmResource = keycloak.realm(keycloakProperties.getRealm());
+            UsersResource usersResource = realmResource.users();
+
+            // Intentar eliminar el usuario directamente usando su ID
+            usersResource.delete(keycloakId);
+            log.info("Successfully deleted user from Keycloak. UserId: {}", keycloakId);
+        } catch (NotFoundException e) {
+            log.warn("User not found in Keycloak during cleanup: {}", keycloakId);
+            throw new NotFoundException("User not found in auth service");
+        } catch (Exception e) {
+            log.error("Error deleting user from Keycloak. UserId: {}", keycloakId, e);
+            throw new InternalServerErrorException("Failed to delete user from auth service");
         }
-
-        log.warn("No user found in Keycloak for email: {}", email);
-        throw new NotFoundException("User not found in Keycloak");
-
-    } catch (Exception e) {
-        log.error("Error searching for user in Keycloak: {}", e.getMessage());
-        throw new InternalServerErrorException("Failed to retrieve user from Keycloak");
     }
-}
+
+    public String getUserIdFromKeycloak(String email) {
+        try {
+            Keycloak keycloak = keycloakClientConfiguration.initializeKeycloakAdmin();
+            RealmResource realmResource = keycloak.realm(keycloakProperties.getRealm());
+            List<UserRepresentation> users = realmResource.users().search(email, null, null, null, 0, 1);
+
+            if (!users.isEmpty()) {
+                String keycloakUserId = users.get(0).getId();
+                log.debug("Found Keycloak user ID: {} for email: {}", keycloakUserId, email);
+                return keycloakUserId;
+            }
+
+            log.warn("No user found in Keycloak for email: {}", email);
+            throw new NotFoundException("User not found in Keycloak");
+
+        } catch (Exception e) {
+            log.error("Error searching for user in Keycloak: {}", e.getMessage());
+            throw new InternalServerErrorException("Failed to retrieve user from Keycloak");
+        }
+    }
+
     @Override
     public void logoutUser(String token) {
         log.debug("Calling Keycloak logout service");

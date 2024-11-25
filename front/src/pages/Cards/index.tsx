@@ -68,8 +68,8 @@ const CardsComponent = () => {
 
   useEffect(() => {
     if (!isAdding) {
-      if (user && user.id) {
-        getUserCards(user.id, token)
+      if (user && user.user_id) {
+        getUserCards(user.user_id, token)
           .then((cards) => {
             if ((cards as Card[]).length > 0) {
               const parsedRecords = (cards as Card[]).map((parsedCard: Card) =>
@@ -217,9 +217,9 @@ function CardForm() {
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
     const { expiry, number, name, cvc } = data;
     transformExpiration(expiry);
-    if (user && user.id) {
+    if (user && user.user_id) {
       createUserCard(
-        user.id,
+        user.user_id,
         {
           expiration: expiry,
           number,

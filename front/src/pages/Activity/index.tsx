@@ -34,8 +34,8 @@ const Activity = () => {
   const { user } = useUserInfo();
 
   useEffect(() => {
-    if (user && user.id) {
-      getUserActivities(user.id, token)
+    if (user && user.user_id) {
+      getUserActivities(user.user_id, token)
         .then((activities) => {
           if ((activities as Transaction[]).length > 0) {
             const orderedActivities = sortByDate(activities);

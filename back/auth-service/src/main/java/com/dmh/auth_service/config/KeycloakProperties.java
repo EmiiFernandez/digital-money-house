@@ -10,9 +10,17 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 @ConfigurationProperties(prefix = "keycloak")
 public class KeycloakProperties {
+    private String authServerUrl;
     private String realm;
-    private String serverUrl;
     private String clientId;
     private String clientSecret;
-    private String authServerUrl;
+    private String resource;
+    private Integer tokenValidity;
+    private Integer refreshTokenValidity;
+    private String authorizationGrantType;
+    private Boolean publicClient;
+    private Boolean bearerOnly;
+    private String principalAttribute;
+    private String sslRequired;
 }
+

@@ -129,8 +129,8 @@ function CardItem({
   const [token] = useLocalStorage('token');
 
   const handleDelete = () => {
-    if (user && user.id) {
-      deleteUserCard(user.id, cardId, token)
+    if (user && user.user_id) {
+      deleteUserCard(user.user_id, cardId, token)
         .then((response) => {
           if (response.status === UNAUTHORIZED) {
             logout();

@@ -60,9 +60,9 @@ const LoadMoney = () => {
   ) => handleChange(event, setFormState);
 
   const onSubmit: SubmitHandler<any> = (data) => {
-    if (user && user.id) {
+    if (user && user.user_id) {
       setIsSubmiting(true);
-      createDepositActivity(user.id, parseFloat(data.money), token)
+      createDepositActivity(user.user_id, parseFloat(data.money), token)
         .then(() => {
           setIsSubmiting(false);
           navigate(`${ROUTES.HOME}?${SUCCESS}`);
