@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -45,13 +47,27 @@ public class UserController {
     }
 
     @GetMapping("/keycloak/{keycloakId}")
-    @PreAuthorize("hasAnyRole('INTERNAL_SERVICE', 'USER', 'ADMIN')")
-    public ResponseEntity<?> getUserByKeycloakId(@PathVariable("keycloakId") String keycloakId) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ResponseGetUser> getUserByKeycloakId(
+            @PathVariable("keycloakId") String keycloakId,
+            Principal principal
+    ) {
+        String authenticatedKeycloakId = extractKeycloakIdFromPrincipal(principal);
+        if (!keycloakId.equals(authenticatedKeycloakId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         ResponseGetUser user = userService.getUserByKeycloakId(keycloakId);
         return ResponseEntity.ok(user);
     }
 
+    // Helper method to extract Keycloak ID from Principal
+    private String extractKeycloakIdFromPrincipal(Principal principal) {
+        return principal.getName();
+    }
 }
+
+
 
 /*
     @GetMapping

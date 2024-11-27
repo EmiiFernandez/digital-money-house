@@ -2,16 +2,22 @@ package com.dmh.auth_service.controller;
 
 import com.dmh.auth_service.dto.TokenRequest;
 import com.dmh.auth_service.dto.TokenResponse;
-import com.dmh.auth_service.exceptions.InternalServerErrorException;
+import com.dmh.auth_service.exceptions.*;
 import com.dmh.auth_service.service.IAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.security.Principal;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -21,56 +27,130 @@ public class AuthController {
 
     private final IAuthService authService;
 
-    @PostMapping
-    public ResponseEntity<?> registerUserCredentials(@Valid @RequestBody TokenRequest tokenRequest) {
-        log.debug("Received registration request for user: {}", tokenRequest.email());
-        log.debug("Headers: {}", RequestContextHolder.currentRequestAttributes());
-        log.debug("Request path: {}", ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest().getRequestURI());
-        return authService.registerUserCredentials(tokenRequest);
+    @PostMapping()
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<?> registerUserCredentials(
+            @Valid @RequestBody TokenRequest tokenRequest
+    ) {
+        log.info("User registration attempt for email: {}", tokenRequest.email());
+
+        try {
+            ResponseEntity<?> response = authService.registerUserCredentials(tokenRequest);
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(response);
+        } catch (BadRequestException e) {
+            log.error("Registration error: {}", e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
     }
+
 
     @PostMapping("/login")
-    public TokenResponse authenticateUser(@Valid @RequestBody TokenRequest tokenRequest) {
-        log.debug("Received authentication request for user: {}", tokenRequest.email());
-        return authService.authenticateUser(tokenRequest.email(), tokenRequest.password());
+    public ResponseEntity<TokenResponse> authenticateUser(
+            @Valid @RequestBody TokenRequest tokenRequest
+    ) {
+        log.info("Authentication attempt for email: {}", tokenRequest.email());
+
+        try {
+            TokenResponse tokenResponse = authService.authenticateUser(
+                    tokenRequest.email(),
+                    tokenRequest.password()
+            );
+
+            return ResponseEntity
+                    .ok()
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenResponse.token())
+                    .body(tokenResponse);
+        } catch (UnauthorizedException e) {
+            log.error("Authentication failed: {}", e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
     }
 
+
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> logout(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader
+    ) {
+        String accessToken = extractToken(authorizationHeader);
 
-        log.debug("Logout request received");
-        log.debug("Authorization header: {}", accessToken);
+        log.info("Logout request initiated");
 
-       authService.logoutUser(accessToken);
-
-        return ResponseEntity.ok("Logout successful");
+        try {
+            authService.logoutUser(accessToken);
+            return ResponseEntity
+                    .ok()
+                    .body(Map.of("message", "Logout successful"));
+        } catch (Exception e) {
+            log.error("Logout failed", e);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Logout failed"));
+        }
     }
 
     @PostMapping("/validate-token")
-    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
-        log.debug("Received token validation request");
-        return authService.validateToken(token.replace("Bearer ", ""));
+    public ResponseEntity<?> validateToken(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader
+    ) {
+        String token = extractToken(authorizationHeader);
+
+        log.info("Token validation request received");
+
+        return authService.validateToken(token);
     }
 
     @DeleteMapping("/users/{keycloakId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'INTERNAL-SERVICE')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable String keycloakId) {
+        log.info("Admin-initiated user deletion for ID: {}", keycloakId);
+
         try {
-            log.info("Deleting user credentials for userId: {}", keycloakId);
             authService.deleteUser(keycloakId);
         } catch (Exception e) {
-            log.error("Error deleting user credentials for userId: {}", keycloakId, e);
-            throw new InternalServerErrorException("Failed to delete user credentials");
+            log.error("User deletion failed", e);
+            throw new InternalServerErrorException(
+                    "Failed to delete user"
+            );
         }
     }
 
     @GetMapping("/users/search")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> getKeycloakUserId(@RequestParam String email) {
-        log.debug("Searching for Keycloak user ID for email: {}", email);
-        String userId = authService.getUserIdFromKeycloak(email);
-        return ResponseEntity.ok(userId);
+        log.info("Admin searching for Keycloak user ID by email");
+
+        return Optional.ofNullable(authService.getUserIdFromKeycloak(email))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-}
+    // Utility method to extract token from Authorization header
+    private String extractToken(String authorizationHeader) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7);
+        }
+        throw new IllegalArgumentException("Invalid Authorization header");
+    }
 
+    // Optional method to get current authenticated user details
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getCurrentUserDetails() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        return Optional.ofNullable(authentication)
+                .map(auth -> ResponseEntity.ok().body(Map.of(
+                        "username", auth.getName(),
+                        "authorities", auth.getAuthorities()
+                )))
+                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
+}
