@@ -97,16 +97,20 @@ export const getUserByKeycloakId = (keycloakId: string): Promise<User | null> =>
           throw new Error(data.message || "Unauthorized");
         });
       }
+      
+      // Use response.json() instead of response.text()
+      const data = await response.json();
       console.log("HTTP status:", response.status);
-      console.log("Raw response:", await response.text());
-      const text = await response.text();
-      return text ? JSON.parse(text) : null;
+      console.log("Parsed response:", data);
+      
+      return data;
     })
     .catch((err) => {
       console.error("Error fetching user info:", err);
       throw err;
     });
 };
+
 
 
 
@@ -128,16 +132,16 @@ export const updateUser = (
 };
 
 // TODO: remove this functionality once backend is ready
-const generateCvu = (): string => {
+/*const generateCvu = (): string => {
   let cvu = '';
   for (let i = 0; i < 22; i++) {
     cvu += Math.floor(Math.random() * 10);
   }
   return cvu;
-};
+};*/
 
 // TODO: remove this functionality once backend is ready
-const generateAlias = (): string => {
+/*const generateAlias = (): string => {
   const words = [
     'Cuenta',
     'Personal',
@@ -164,10 +168,10 @@ const generateAlias = (): string => {
     }
   }
   return alias;
-};
+};*/
 
 // TODO: remove this functionality once backend is ready
-export const createAnAccount = (data: any): Promise<Response> => {
+/*export const createAnAccount = (data: any): Promise<Response> => {
   const { user, accessToken } = data;
 
   const alias = generateAlias();
@@ -187,7 +191,7 @@ export const createAnAccount = (data: any): Promise<Response> => {
   ).then((response) =>
     response.ok ? response.json() : rejectPromise(response)
   );
-};
+};*/
 
 export const getAccount = (user_id: number, token: string): Promise<UserAccount> => {
   return fetch(myRequest(`${baseUrl}/users/${user_id}/accounts`, 'GET', token), {})
