@@ -2,7 +2,7 @@ import React, { createContext, useEffect, useReducer } from 'react';
 import userReducer from './userReducer';
 import { User } from '../../types';
 import { useAuth, useLocalStorage } from '../../hooks';
-import { getUser, parseJwt } from '../../utils';
+import { getUserByKeycloakId, parseJwt } from '../../utils';
 import { userActionTypes } from './types';
 import { UNAUTHORIZED } from '../../constants/status';
 export interface UserInfoState {
@@ -35,9 +35,9 @@ const UserInfoProvider = ({ children }: { children: React.ReactNode }) => {
       const token = window.localStorage.getItem('token');
       if (token) {
         const info = parseJwt(token);
-        const userId = info && info.sub;
-        userId &&
-          getUser(userId)
+        const keycloakId = info && info.sub;
+        keycloakId &&
+          getUserByKeycloakId(keycloakId)
             .then((res) => {
               dispatch({ type: userActionTypes.SET_USER, payload: res });
               dispatch({
