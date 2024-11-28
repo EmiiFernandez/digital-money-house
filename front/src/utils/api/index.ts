@@ -46,9 +46,13 @@ const rejectPromise = (response?: Response): Promise<Response> =>
       }
   
       const data = await response.json();
-      console.log("Received token:", data.token);
-  
-      localStorage.setItem("token", data.token);
+      
+      // Ensure the token is a string before storing
+      if (typeof data.token === 'string') {
+        localStorage.setItem("token", JSON.stringify(data.token));
+      } else {
+        throw new Error("Invalid token format");
+      }
   
       return data;
     } catch (error) {
@@ -85,33 +89,55 @@ export const getUser = (user_id: number): Promise<User> => {
 
 export const getUserByKeycloakId = (keycloakId: string): Promise<User | null> => {
   const token = localStorage.getItem("token");
+  
+  // Ensure token is parsed correctly
+  const parsedToken = token ? JSON.parse(token) : null;
+
   return fetch(`${baseUrl}/users/keycloak/${keycloakId}`, {
+    method: 'GET',
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      ...(parsedToken ? { Authorization: `Bearer ${parsedToken}` } : {}),
     },
   })
     .then(async (response) => {
+      console.log('Response status:', response.status);
+      
+      // Handle unauthorized or other error statuses
       if (!response.ok) {
-        return response.json().then((data) => {
-          throw new Error(data.message || "Unauthorized");
-        });
+        // Try to parse error response
+        try {
+          const errorData = await response.json();
+          console.error('Error response:', errorData);
+        } catch {
+          console.error('Could not parse error response');
+        }
+
+        // Throw an error with status for handling
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      // Use response.json() instead of response.text()
-      const data = await response.json();
-      console.log("HTTP status:", response.status);
-      console.log("Parsed response:", data);
-      
-      return data;
+      // Attempt to parse response
+      try {
+        const data = await response.json();
+        console.log("Parsed user data:", data);
+        return data;
+      } catch (parseError) {
+        console.error('Failed to parse response:', parseError);
+        return null;
+      }
     })
     .catch((err) => {
       console.error("Error fetching user info:", err);
+      
+      // If token is invalid, clear it
+      if (err.message.includes('401')) {
+        localStorage.removeItem('token');
+      }
+      
       throw err;
     });
 };
-
-
 
 
 export const updateUser = (
