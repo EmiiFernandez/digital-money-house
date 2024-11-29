@@ -81,7 +81,6 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.delete(account);
     }
 
-    //"Find account by user_id in the token." //FALTA AGREGAR EL TOKEN
     public ResponseAccount getAccountByUserId(Integer user_id) {
         Account account = accountRepository.findAccountByUserId(user_id)
                 .orElseThrow(() -> new NotFoundException("Cuenta no encontrada para el usuario: " + user_id));
@@ -90,7 +89,6 @@ public class AccountServiceImpl implements AccountService {
         return accountMapper.responseAccount(account);
     }
 
-    //Update only the alias of the account. //FALTA AGREGAR EL TOKEN
     public ResponseAccount updateAliasAccount(Integer account_id, RequestAlias requestAlias) {
         Account account = accountRepository.findById(account_id)
                 .orElseThrow(() -> new NotFoundException("Account not found with id: " + account_id));

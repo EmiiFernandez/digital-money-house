@@ -21,8 +21,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/accounts/**")
-                        .hasAnyAuthority("SCOPE_internal_service", "ROLE_INTERNAL_SERVICE")
-                        .requestMatchers(HttpMethod.GET, "/api/accounts/**").hasAnyAuthority("SCOPE_internal_service", "USER")
+                        .hasAnyAuthority("SCOPE_internal_service", "INTERNAL_SERVICE")
+                        .requestMatchers(HttpMethod.GET, "/api/accounts/**").hasAnyAuthority("SCOPE_internal_service", "INTERNAL_SERVICE", "USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/accounts/**").hasAnyAuthority("SCOPE_internal_service", "INTERNAL_SERVICE", "USER", "ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

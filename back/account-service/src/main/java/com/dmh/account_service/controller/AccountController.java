@@ -40,14 +40,13 @@ public class AccountController {
         return accountService.createAccount(user_id);
     }
 
-    //Cambiar a traer por usuario autenticado
     @GetMapping("/{user_id}")
     public ResponseEntity<ResponseAccount> getAccountsByUserId(@PathVariable Integer user_id) {
         ResponseAccount account = accountService.getAccountByUserId(user_id);
         return ResponseEntity.ok(account);
     }
 
-    @PatchMapping("/{user_id}")
+    @PatchMapping("/{account_id}")
     public ResponseEntity<ResponseAccount> updateUser(
             @PathVariable Integer account_id,
             @RequestBody RequestAlias requestAlias) {
@@ -55,9 +54,11 @@ public class AccountController {
         return ResponseEntity.ok(updatedAlias);
     }
 
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/{user_id}")
     public ResponseEntity<Void> deleteAccount(@PathVariable Integer user_id) {
         accountService.deleteAccountByUserId(user_id);
         return ResponseEntity.noContent().build();
     }
+
+    /*Crear getAccount por jwt*/
 }
