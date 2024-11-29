@@ -59,7 +59,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/ping").permitAll()
                         .pathMatchers("/actuator/**").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
-                        .pathMatchers("/api/accounts/**").hasRole("ADMIN")
+                        .pathMatchers("/api/accounts/**").hasAnyRole("USER", "INTERNAL_SERVICE","ADMIN")
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
