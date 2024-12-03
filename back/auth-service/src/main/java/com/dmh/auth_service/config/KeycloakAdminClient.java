@@ -34,9 +34,8 @@ public class KeycloakAdminClient {
                     .users()
                     .create(user);
             if (response.getStatus() != 201) {
-                throw new ConflictException(
-                        "Error creando usuario en Keycloak: " + response.getStatus()
-                );
+                logger.error("Error al crear usuario en Keycloak: " + response.getStatus() + " - " + response.getStatusInfo());
+                throw new ConflictException("Error creando usuario en Keycloak: " + response.getStatus());
             }
             String userId = extractUserIdFromResponse(response);
             setUserPassword(userId, tokenRequest.password());
