@@ -1,15 +1,29 @@
-# Etapa de construcción
-FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
+# Use an official OpenJDK runtime as the base image
+FROM openjdk:21-jdk-slim
+
+# Set the working directory in the container
 WORKDIR /app
-COPY pom.xml .
-COPY src ./src
+
+# Copy the entire project
+COPY . .
+
+# Install Maven
+RUN apt-get update && \
+    apt-get install -y maven wget && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Build the application
 RUN mvn clean package -DskipTests
 
-# Etapa de ejecución
-FROM eclipse-temurin:17.0.9_9-jre-alpine
-WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
+# Find and copy the JAR file
+RUN find /app/target -name "*.jar" -exec cp {} /app/app.jar \;
+
+# Expose the port the app runs on
 EXPOSE 8081
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+
+# Install wget for health check
+RUN apt-get update && apt-get install -y wget
+
+# Run the jar file
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/app.jar"]
