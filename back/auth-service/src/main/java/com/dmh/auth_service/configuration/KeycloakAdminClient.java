@@ -1,4 +1,4 @@
-package com.dmh.auth_service.config;
+package com.dmh.auth_service.configuration;
 
 import com.dmh.auth_service.dto.TokenRequest;
 import com.dmh.auth_service.exceptions.ConflictException;

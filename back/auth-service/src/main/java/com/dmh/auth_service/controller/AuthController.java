@@ -29,6 +29,7 @@ public class AuthController {
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('INTERNAL_SERVICE')")
     public ResponseEntity<?> registerUserCredentials(
             @Valid @RequestBody TokenRequest tokenRequest
     ) {

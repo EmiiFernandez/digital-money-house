@@ -26,9 +26,9 @@ public class SecurityConfig {
          http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users/internal/**").hasRole("INTERNAL_SERVICE")
-                        .requestMatchers(HttpMethod.GET,"/api/users/**").hasAnyRole("USER", "INTERNAL_SERVICE")
+                        .requestMatchers(HttpMethod.GET,"/api/users/**").permitAll()
                         .anyRequest().authenticated()                )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt

@@ -1,6 +1,6 @@
 package com.dmh.auth_service.service;
 
-import com.dmh.auth_service.config.KeycloakProperties;
+import com.dmh.auth_service.configuration.KeycloakProperties;
 import com.dmh.auth_service.dto.TokenResponse;
 import com.dmh.auth_service.exceptions.*;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ public class KeycloakService {
     public TokenResponse getTokens(String email, String password) {
         log.info("Requesting tokens for user: {}", email);
 
-        String tokenUrl = keycloakProperties.getAuthServerUrl() +
+        String tokenUrl = keycloakProperties.getServerUrl() +
                 "/realms/" + keycloakProperties.getRealm() +
                 "/protocol/openid-connect/token";
 
@@ -59,7 +59,7 @@ public class KeycloakService {
     public TokenResponse refreshToken(String refreshToken) {
         log.info("Refreshing token");
 
-        String tokenUrl = keycloakProperties.getAuthServerUrl() +
+        String tokenUrl = keycloakProperties.getServerUrl() +
                 "/realms/" + keycloakProperties.getRealm() +
                 "/protocol/openid-connect/token";
 
@@ -86,7 +86,7 @@ public class KeycloakService {
     public void logoutUser(String accessToken) {
         log.info("Logging out user");
 
-        String logoutUrl = keycloakProperties.getAuthServerUrl() +
+        String logoutUrl = keycloakProperties.getServerUrl() +
                 "/realms/" + keycloakProperties.getRealm() +
                 "/protocol/openid-connect/logout";
 

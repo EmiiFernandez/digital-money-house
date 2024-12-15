@@ -1,4 +1,4 @@
-package com.dmh.auth_service.config;
+package com.dmh.gateway.configuration;
 
 import lombok.Getter;
 import lombok.Setter;

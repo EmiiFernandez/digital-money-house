@@ -12,7 +12,7 @@ public class FeignClientConfig {
     @Bean
     public RequestInterceptor oauth2FeignRequestInterceptor(
             OAuth2AuthorizedClientManager authorizedClientManager) {
-        return new OAuth2FeignRequestInterceptor(authorizedClientManager, "keycloak");
+        return new OAuth2FeignRequestInterceptor(authorizedClientManager);
     }
 
     @Bean

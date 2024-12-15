@@ -1,5 +1,6 @@
-package com.dmh.account_service.security;
+package com.dmh.auth_service.configuration;
 
+import com.dmh.auth_service.security.JwtAuthConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +37,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/account/**").hasAuthority("SCOPE_internal_service")
+                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

@@ -1,7 +1,7 @@
 package com.dmh.auth_service.service;
 
-import com.dmh.auth_service.config.KeycloakClientConfiguration;
-import com.dmh.auth_service.config.KeycloakProperties;
+import com.dmh.auth_service.configuration.KeycloakClientConfiguration;
+import com.dmh.auth_service.configuration.KeycloakProperties;
 import com.dmh.auth_service.dto.TokenRequest;
 
 import com.dmh.auth_service.exceptions.*;
@@ -20,6 +20,7 @@ import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
@@ -40,21 +41,39 @@ public class AuthService implements IAuthService {
     private final KeycloakClientConfiguration keycloakClientConfiguration;
     private final KeycloakService keycloakService;
 
+    @Value("${keycloak.serverUrl}")
+    private String keycloakServerUrl;
+
+    @Value("${keycloak.realm}")
+    private String keycloakRealm;
+
     @Override
     @Transactional
     public ResponseEntity<?> registerUserCredentials(TokenRequest tokenRequest) {
-        log.debug("Processing registration for user: {}", tokenRequest.email());
+        log.info("Starting user registration process for email: {}", tokenRequest.email());
+        log.debug("Keycloak Server URL: {}, Realm: {}", keycloakServerUrl, keycloakRealm);
 
         if (tokenRequest == null || tokenRequest.email() == null || tokenRequest.password() == null) {
             log.error("Invalid registration request: missing required fields");
             throw new BadRequestException("Email and password are required");
         }
 
-        log.debug("Processing registration for user: {}", tokenRequest.email());
-
         try {
             Keycloak keycloak = keycloakClientConfiguration.initializeKeycloakAdmin();
+
+            // Additional logging for troubleshooting
+            log.debug("Keycloak Client initialized. Attempting to access realm: {}", keycloakProperties.getRealm());
+
             RealmResource realmResource = keycloak.realm(keycloakProperties.getRealm());
+
+            // Verify realm exists
+            try {
+                realmResource.toRepresentation();
+            } catch (Exception e) {
+                log.error("Realm does not exist or cannot be accessed: {}", keycloakProperties.getRealm());
+                throw new InternalServerErrorException("Invalid Keycloak realm configuration");
+            }
+
             UsersResource usersResource = realmResource.users();
 
             if (userExists(usersResource, tokenRequest.email())) {
@@ -63,7 +82,10 @@ public class AuthService implements IAuthService {
             }
 
             UserRepresentation userRepresentation = createUserRepresentation(tokenRequest);
+
             Response response = usersResource.create(userRepresentation);
+
+            log.debug("User creation response status: {}", response.getStatus());
 
             if (response.getStatus() == 201) {
                 String userId = CreatedResponseUtil.getCreatedId(response);
@@ -74,13 +96,13 @@ public class AuthService implements IAuthService {
                         .body(new ErrorResponse(userId + " User registered successfully"));
             }
 
-            log.error("Failed to create user. Status: {}", response.getStatus());
-            throw new InternalServerErrorException("Failed to register user");
+            log.error("Failed to create user. Response status: {}, Response info: {}",
+                    response.getStatus(), response.getStatusInfo());
 
-        } catch (ConflictException | BadRequestException e) {
-            throw e;
+            throw new InternalServerErrorException("Failed to register user. Status: " + response.getStatus());
+
         } catch (Exception e) {
-            log.error("Error during user registration: {}", e.getMessage(), e);
+            log.error("Comprehensive registration error", e);
             throw new InternalServerErrorException("Registration error: " + e.getMessage());
         }
     }
@@ -118,9 +140,9 @@ public class AuthService implements IAuthService {
         }
 
         // Validación de configuración
-        if (keycloakProperties.getAuthServerUrl() == null || keycloakProperties.getRealm() == null) {
+        if (keycloakProperties.getServerUrl() == null || keycloakProperties.getRealm() == null) {
             log.error("Keycloak configuration is missing. AuthServerUrl: {}, Realm: {}",
-                    keycloakProperties.getAuthServerUrl(),
+                    keycloakProperties.getServerUrl(),
                     keycloakProperties.getRealm());
             throw new IllegalStateException("Keycloak configuration is missing");
         }
@@ -136,7 +158,7 @@ public class AuthService implements IAuthService {
             }
 
             // Construcción del issuer esperado
-            String expectedIssuer = keycloakProperties.getAuthServerUrl();
+            String expectedIssuer = keycloakProperties.getServerUrl();
             if (!expectedIssuer.endsWith("/")) {
                 expectedIssuer += "/";
             }
@@ -191,7 +213,7 @@ public class AuthService implements IAuthService {
     private void assignDefaultRole(RealmResource realmResource, UsersResource usersResource, String userId) {
         UserResource userResource = usersResource.get(userId);
         RoleRepresentation userRole = realmResource.roles()
-                .get("user-role")
+                .get("USER")
                 .toRepresentation();
 
         userResource.roles().realmLevel().add(Collections.singletonList(userRole));

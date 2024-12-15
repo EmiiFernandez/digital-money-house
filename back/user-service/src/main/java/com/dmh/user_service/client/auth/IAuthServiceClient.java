@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 @FeignClient(
         name = "AUTH-SERVICE",
-        url = "${auth.service.url:http://auth-service:8083/api/auth}",
+        url = "${auth.service.url:http://localhost:8083/api/auth}",
         fallbackFactory = AuthServiceFallback.class
 )public interface IAuthServiceClient {
     @PostMapping()

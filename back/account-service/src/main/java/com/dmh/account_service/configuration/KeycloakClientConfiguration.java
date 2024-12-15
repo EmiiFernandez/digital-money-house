@@ -1,4 +1,4 @@
-package com.dmh.auth_service.config;
+package com.dmh.account_service.configuration;
 
 import lombok.RequiredArgsConstructor;
 import org.keycloak.OAuth2Constants;
@@ -18,7 +18,7 @@ public class KeycloakClientConfiguration {
     @Bean
     public Keycloak initializeKeycloakAdmin() {
         return KeycloakBuilder.builder()
-                .serverUrl(keycloakProperties.getAuthServerUrl())
+                .serverUrl(keycloakProperties.getServerUrl())
                 .realm(keycloakProperties.getRealm())
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .clientId(keycloakProperties.getClientId())
