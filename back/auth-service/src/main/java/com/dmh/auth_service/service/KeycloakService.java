@@ -3,6 +3,8 @@ package com.dmh.auth_service.service;
 import com.dmh.auth_service.configuration.KeycloakProperties;
 import com.dmh.auth_service.dto.TokenResponse;
 import com.dmh.auth_service.exceptions.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.OAuth2Constants;
@@ -10,11 +12,13 @@ import org.keycloak.TokenVerifier;
 import org.keycloak.representations.AccessToken;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -29,8 +33,6 @@ public class KeycloakService {
     private final WebClient webClient;
 
     public TokenResponse getTokens(String email, String password) {
-        log.info("Requesting tokens for user: {}", email);
-
         String tokenUrl = keycloakProperties.getServerUrl() +
                 "/realms/" + keycloakProperties.getRealm() +
                 "/protocol/openid-connect/token";
@@ -42,18 +44,37 @@ public class KeycloakService {
         formData.add("username", email);
         formData.add("password", password);
 
-        return webClient.post()
-                .uri(tokenUrl)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData(formData))
-                .retrieve()
-                .bodyToMono(Map.class)
-                .map(this::createTokenResponse)
-                .onErrorMap(e -> {
-                    log.error("Error during token request", e);
-                    return new UnauthorizedException("Invalid credentials or Keycloak error");
-                })
-                .block();
+        try {
+            ResponseEntity<Map> response = webClient.post()
+                    .uri(tokenUrl)
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(BodyInserters.fromFormData(formData))
+                    .retrieve()
+                    .toEntity(Map.class)
+                    .block();
+
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                return createTokenResponse(response.getBody());
+            } else {
+                log.error("Token request failed with status: {}", response.getStatusCode());
+                throw new UnauthorizedException("Authentication failed");
+            }
+        } catch (WebClientResponseException e) {
+            log.error("Keycloak authentication error: {}", e.getResponseBodyAsString());
+            throw new UnauthorizedException(parseKeycloakError(e.getResponseBodyAsString()));
+        }
+    }
+
+    private String parseKeycloakError(String errorBody) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode jsonNode = mapper.readTree(errorBody);
+            return jsonNode.has("error_description")
+                    ? jsonNode.get("error_description").asText()
+                    : "Authentication failed";
+        } catch (Exception e) {
+            return "Unable to parse error details";
+        }
     }
 
     public TokenResponse refreshToken(String refreshToken) {
