@@ -99,6 +99,8 @@ services:
     depends_on:
       postgres_keycloak:
         condition: service_healthy
+    volumes:
+      - ./keycloak:opt/keycloak/data/import
     networks:
       - back_network
     deploy:

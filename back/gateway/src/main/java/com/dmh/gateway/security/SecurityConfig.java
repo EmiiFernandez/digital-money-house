@@ -56,7 +56,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/api/users/register").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/auth").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/ping").permitAll()
+                        .pathMatchers("/ping").permitAll()
                         .pathMatchers("/actuator/**").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
                         .pathMatchers("/api/accounts/**").hasAnyRole("USER", "INTERNAL_SERVICE","ADMIN")

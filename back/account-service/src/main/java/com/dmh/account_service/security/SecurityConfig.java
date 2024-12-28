@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/account/**").hasAuthority("SCOPE_internal_service")
+                        .requestMatchers(HttpMethod.PATCH, "/api/accounts/**").hasAnyRole("INTERNAL_SERVICE", "USER", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -78,7 +79,7 @@ public class SecurityConfig {
             List<String> roles = (List<String>) realmAccess.get("roles");
 
             return roles.stream()
-                    .map(roleName -> new SimpleGrantedAuthority("" + roleName.toUpperCase()))
+                    .map(roleName -> new SimpleGrantedAuthority("ROLE_" + roleName.toUpperCase()))
                     .collect(Collectors.toList()); // Convierte los roles a GrantedAuthority
         }
     }
