@@ -11,7 +11,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { login } from "../../utils"; // Llama a tu API
 import { useAuth, useLocalStorage } from "../../hooks";
 import { SnackBar } from "../../components";
-import { BAD_REQUEST, ERROR_MESSAGES } from "../../constants";
+import { BAD_REQUEST, ERROR_MESSAGES, ROUTES } from "../../constants";
 import { useNavigate } from "react-router-dom";  // Importa el hook
 
 export interface LoginInputs {
@@ -47,7 +47,7 @@ const Login = () => {
       .then((response) => {
         setToken(response.token); 
         setIsAuthenticated(true); 
-        navigate("/dashboard");  
+        navigate(ROUTES.HOME);  
       })
       .catch((error) => {
         console.error("Login failed", error);
