@@ -94,6 +94,10 @@ services:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HOSTNAME: localhost
+      KC_SMTP_SSL_TRUST: "smtp.gmail.com"
+      KC_SMTP_STARTTLS: "true"
+      # If using a non-root user, you might also need:
+      JAVA_OPTS_APPEND: "-Djava.security.egd=file:/dev/urandom"
     ports:
       - "9092:8080"
     depends_on:
